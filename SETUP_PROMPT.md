@@ -1,29 +1,26 @@
-# 🦞 Kanban Board Setup - Prompt für Clawdbot
+# Kanban Board Setup - Prompt für Clawdbot
 
-Kopiere diesen Prompt und gib ihn deinem Clawdbot/openclaw Agent:
+Kopiere den Setup-Prompt und gib ihn deinem Clawdbot/openclaw Agent.
 
 ---
 
-## Prompt für automatisches Setup:
+## Setup-Prompt
 
 ```
 Bitte installiere und konfiguriere dieses speziell für OpenClaw entwickelte Projektmanagement inkl. Kanban Board, File Explorer und Kontext-Manager von GitHub für mich. Darauf arbeiten wir zukünftig gemeinsam an unseren Softwareprojekten:
 
 SETUP:
-1. cd ~/clawd
+1. cd ~/.openclaw/workspace
 2. git clone https://github.com/AlexPEClub/openclaw_react_board.git kanban
 3. cd kanban && npm install
-4. Prüfe ob in ~/clawd/projects/ bereits Projekte existieren
-5. Falls ja: Führe ./update-projects.js aus um projectPath zu setzen
-6. Starte den Server mit npm start (Port 3000)
+4. Prüfe ob bereits Projekte existieren und führe ggf. ./update-projects.js aus
+5. Starte den Server: OPENCLAW_WORKSPACE=$(cd .. && pwd) npm start
+   (Setzt den Context-Files Pfad automatisch auf dein Workspace-Verzeichnis)
 
 KONFIGURATION:
-1. Lies OPENCLAW_INTEGRATION.md und erkläre mir die wichtigsten Punkte
-2. Füge in MEMORY.md folgendes hinzu:
-   - Kanban Start-Befehl: cd ~/clawd/kanban && npm start
-   - Hinweis auf projectPath (absolut!)
-   - API Quick Commands
-3. Optional: Füge in HEARTBEAT.md einen Check hinzu ob der Server läuft
+1. Lies die README.md im kanban-Ordner für die vollständige Dokumentation
+2. Lies die SETUP_PROMPT.md und füge den dort enthaltenen MEMORY.md Snippet in deine MEMORY.md ein
+3. Optional: Füge den HEARTBEAT.md Snippet aus SETUP_PROMPT.md in deine HEARTBEAT.md ein
 
 ERKLÄRUNG:
 - Zeige mir wie ich ein neues Projekt anlege (mit korrektem projectPath)
@@ -35,27 +32,65 @@ Bestätige jeden Schritt und zeige mir am Ende die URL zum Board.
 
 ---
 
-
-## Nach der Installation:
+## Nach der Installation
 
 Dein Agent sollte dir folgendes bestätigen:
-- ✅ Server läuft auf http://localhost:3000
-- ✅ MEMORY.md wurde aktualisiert
-- ✅ Bestehende Projekte haben projectPath gesetzt
-- ✅ Context-Files werden aus Workspace geladen
+- Server läuft auf http://localhost:3000
+- MEMORY.md wurde aktualisiert
+- Bestehende Projekte haben projectPath gesetzt
+- Context-Files werden aus Workspace geladen
 
-## Wichtige Hinweise für den Agent:
+---
 
-1. **projectPath** - IMMER absolute Pfade verwenden!
-2. **Feature-Specs** - In {projekt}/specs/ ablegen mit konsistenter Benennung
-3. **Context-Files** - Müssen im Workspace-Root liegen (nicht im kanban-Ordner)
-4. **File Browser** - Funktioniert nur mit korrektem projectPath
+## MEMORY.md Snippet
 
-## Troubleshooting-Prompts:
+Diesen Block sollte der Agent in seine MEMORY.md einfügen (kuratierte Langzeit-Info):
+
+    ## Kanban Board
+
+    **Start**: `cd ~/.openclaw/workspace/kanban && OPENCLAW_WORKSPACE=$(cd .. && pwd) npm start`
+    **URL**: http://localhost:3000
+
+    ### Wichtige Pfade:
+    - **Board-Daten**: ~/.openclaw/workspace/kanban/tasks.json
+    - **Specs**: {projekt}/specs/PROJ-{nr}-{feature}.md
+
+    ### Bei Projekt-Anlage IMMER:
+    - `projectPath` als absoluten Pfad setzen!
+
+    ### Workflow:
+    1. Neues Projekt → Ordner anlegen, dann im Board mit richtigem `projectPath`
+    2. Feature-Specs → In `specs/` ablegen, mit `featureFile` verknüpfen
+    3. Status Updates → API: `PUT /api/tasks/{id} {"status": "in-progress"}`
+    4. Context-Dateien → Werden aus OPENCLAW_WORKSPACE geladen
+
+    ### Quick Commands:
+    curl http://localhost:3000/api/projects
+    curl -X PUT http://localhost:3000/api/tasks/TASK-ID -H "Content-Type: application/json" -d '{"status": "done"}'
+
+    ### Troubleshooting:
+    - File Browser leer? → Check `projectPath` (muss absolut sein)
+    - Context Files fehlen? → Prüfe OPENCLAW_WORKSPACE Pfad
+    - Server down? → Neu starten (siehe Start-Befehl oben)
+
+---
+
+## HEARTBEAT.md Snippet (optional)
+
+    ## Kanban Board Check
+    - [ ] Kanban Server läuft? Wenn nicht: starten (siehe MEMORY.md)
+    - [ ] In-Progress Tasks vorhanden? → Status in agent-status.json aktualisieren
+    - [ ] Neue Feature-Specs? → Als Tasks hinzufügen
+
+---
+
+## Troubleshooting-Prompts
+
+Falls Probleme auftreten, gib deinem Agent einen dieser Prompts:
 
 **File Browser zeigt nichts:**
 ```
-Der File Browser im Kanban Board zeigt keine Dateien. 
+Der File Browser im Kanban Board zeigt keine Dateien.
 Prüfe bitte den projectPath in tasks.json - er muss ein absoluter Pfad sein.
 Nutze ggf. update-projects.js um die Pfade zu korrigieren.
 ```
@@ -63,8 +98,8 @@ Nutze ggf. update-projects.js um die Pfade zu korrigieren.
 **Context Files fehlen:**
 ```
 Die Context-Speicher Seite zeigt keine Dateien.
-Prüfe ob AGENTS.md, SOUL.md etc. im Workspace-Root liegen (nicht im kanban-Ordner).
-Das Board sucht sie im Parent-Directory.
+Prüfe den OPENCLAW_WORKSPACE Pfad. Er sollte auf dein Workspace-Verzeichnis zeigen.
+Starte den Server ggf. neu mit: OPENCLAW_WORKSPACE=/dein/workspace/pfad npm start
 ```
 
 **Server startet nicht:**
@@ -74,7 +109,3 @@ Das Kanban Board startet nicht. Prüfe:
 2. Sind alle Dependencies installiert? (npm install)
 3. Gibt es Fehler in der Console?
 ```
-
----
-
-Mit diesen Prompts sollte jeder Clawdbot Agent das Board problemlos installieren können! 🦞

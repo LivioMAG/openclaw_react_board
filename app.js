@@ -480,7 +480,7 @@ app.post('/api/projects/:projectId/sync-features', (req, res) => {
 // Context Files API (Agent Configuration)
 // ==========================================
 
-const WORKSPACE_PATH = path.join(__dirname, '..');
+const WORKSPACE_PATH = process.env.OPENCLAW_WORKSPACE || '/data/.openclaw/workspace';
 const CONTEXT_FILES = [
     { name: 'MEMORY.md', description: 'Langzeit-Gedächtnis & Notizen' },
     { name: 'AGENTS.md', description: 'Agent-Verhaltensregeln' },
