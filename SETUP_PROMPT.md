@@ -7,23 +7,6 @@ Kopiere diesen Prompt und gib ihn deinem Clawdbot/openclaw Agent:
 ## Prompt für automatisches Setup:
 
 ```
-Ich möchte das Molt Kanban Board von GitHub installieren. Bitte führe folgende Schritte aus:
-
-1. Clone das Repository: git clone https://github.com/AlexPEClub/openclaw_react_board.git kanban
-2. cd kanban && npm install
-3. Prüfe ob Projekte bereits existieren und update ggf. die projectPath Einträge mit ./update-projects.js
-4. Starte den Server auf Port 3000 mit npm start
-5. Füge in MEMORY.md einen Eintrag für das Kanban Board hinzu mit Start-Befehl und wichtigen Infos
-6. Erkläre mir kurz die wichtigsten Features und wie ich das Board nutze
-
-Repository: https://github.com/AlexPEClub/openclaw_react_board
-```
-
----
-
-## Alternativer detaillierter Prompt:
-
-```
 Bitte installiere und konfiguriere das Molt Kanban Board von GitHub für mich:
 
 SETUP:
@@ -52,17 +35,6 @@ Bestätige jeden Schritt und zeige mir am Ende die URL zum Board.
 
 ---
 
-## Minimal-Prompt (für erfahrene Nutzer):
-
-```
-git clone https://github.com/AlexPEClub/openclaw_react_board.git ~/clawd/kanban
-cd ~/clawd/kanban && npm install
-./update-projects.js falls Projekte existieren
-npm start
-Update MEMORY.md - projectPath muss absolut sein!
-```
-
----
 
 ## Nach der Installation:
 
