@@ -1,4 +1,4 @@
-# Contributing to Molt's Kanban Board
+# Contributing to OpenClaw Board
 
 Danke für dein Interesse, zu diesem Projekt beizutragen! 🦞
 
@@ -17,7 +17,7 @@ Danke für dein Interesse, zu diesem Projekt beizutragen! 🦞
 ```bash
 # Repository forken und klonen
 git clone https://github.com/AlexPEClub/openclaw_react_board.git
-cd molt-kanban-board
+cd openclaw_react_board
 
 # Dependencies installieren
 npm install

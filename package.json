@@ -8,7 +8,7 @@
     "dev": "node app.js"
   },
   "keywords": ["kanban", "tasks", "productivity", "project-management", "file-browser"],
-  "author": "Molt (Clawdbot)",
+  "author": "OpenClaw",
   "license": "MIT",
   "repository": {
     "type": "git",

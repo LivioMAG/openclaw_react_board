@@ -488,8 +488,7 @@ const CONTEXT_FILES = [
     { name: 'USER.md', description: 'Infos über den User' },
     { name: 'TOOLS.md', description: 'Tool-Konfiguration & Notizen' },
     { name: 'IDENTITY.md', description: 'Name, Vibe, Avatar' },
-    { name: 'HEARTBEAT.md', description: 'Periodische Aufgaben' },
-    { name: 'docs/development.md', description: 'AI Coding Pipeline & Workflows' }
+    { name: 'HEARTBEAT.md', description: 'Periodische Aufgaben' }
 ];
 
 // GET all context files
@@ -823,7 +822,7 @@ app.put('/api/projects/:id/files/*', (req, res) => {
 
 // Start server
 app.listen(PORT, HOST, () => {
-    console.log(`\n🦞 Molt's Multi-Project Board v2\n`);
+    console.log(`\n🦞 OpenClaw Board v2\n`);
     console.log(`   🌐 http://0.0.0.0:${PORT}`);
     console.log(`   📡 API: http://localhost:${PORT}/api/projects\n`);
 });

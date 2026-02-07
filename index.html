@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Molt's Projects 🦞</title>
+    <title>OpenClaw Board 🦞</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- CodeMirror for Code Editor -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
@@ -1074,7 +1074,7 @@
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
-        <div class="sidebar-header">🦞 Molty</div>
+        <div class="sidebar-header">🦞 OpenClaw</div>
         
         <!-- Navigation Menu -->
         <div class="nav-menu">
@@ -1273,10 +1273,10 @@
     </div>
 
     <!-- Status View (Activity Log) -->
-    <div id="statusView" style="display: none; flex-direction: column; padding: 2rem; overflow-y: auto; width: 100%; justify-content: flex-start; align-items: center; margin-left: 260px;">
+    <div id="statusView" style="display: none; position: fixed; left: 260px; top: 0; right: 0; height: 100vh; flex-direction: column; padding: 2rem; overflow-y: auto; justify-content: flex-start; align-items: center; box-sizing: border-box;">
         <div style="margin-bottom: 2rem; width: 100%; max-width: 800px; text-align: center;">
             <h1 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">📜 Aktivitäten</h1>
-            <p style="color: var(--text-secondary);">Alle Entwicklungstätigkeiten von Molt</p>
+            <p style="color: var(--text-secondary);">Alle Entwicklungstätigkeiten</p>
         </div>
 
         <div id="activityList" class="activity-log" style="width: 100%; max-width: 800px;">
@@ -1285,32 +1285,32 @@
     </div>
 
     <!-- Context Files View -->
-    <div id="contextView" style="display: none; width: 100%; height: 100vh; flex: 1; margin-left: 260px;">
-        <div style="display: flex; height: 100%; width: 100%;">
+    <div id="contextView" style="display: none; position: fixed; left: 260px; top: 0; right: 0; height: 100vh; box-sizing: border-box;">
+        <div style="display: flex; height: 100%; width: 100%; box-sizing: border-box;">
             <!-- Files List -->
-            <div style="width: 280px; min-width: 280px; background: var(--bg-secondary); border-right: 1px solid var(--border); padding: 1.5rem; overflow-y: auto;">
+            <div style="width: 280px; min-width: 280px; background: var(--bg-secondary); border-right: 1px solid var(--border); padding: 1.5rem; overflow-y: auto; box-sizing: border-box;">
                 <div style="margin-bottom: 1.5rem;">
                     <h2 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">🧠 Context-Speicher</h2>
                     <p style="font-size: 0.8rem; color: var(--text-secondary);">Agent-Konfiguration & Memory</p>
                 </div>
                 <div id="contextFilesList" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
             </div>
-            
+
             <!-- Editor -->
-            <div style="flex: 1; display: flex; flex-direction: column; padding: 1.5rem; overflow: hidden; min-width: 0;">
-                <div id="contextEditorHeader" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
-                    <div>
+            <div style="flex: 1; display: flex; flex-direction: column; padding: 1.5rem; min-width: 0; overflow: auto; box-sizing: border-box;">
+                <div id="contextEditorHeader" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); flex-shrink: 0;">
+                    <div style="min-width: 0; flex: 1;">
                         <h3 id="contextFileName" style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary);">Datei auswählen</h3>
                         <p id="contextFileDesc" style="font-size: 0.8rem; color: var(--text-secondary);"></p>
                     </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button id="contextPreviewBtn" onclick="toggleContextPreview()" style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Vorschau</button>
-                        <button id="contextSaveBtn" onclick="saveContextFile()" style="background: var(--accent); border: none; color: white; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: none;">Speichern</button>
+                    <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
+                        <button id="contextPreviewBtn" onclick="toggleContextPreview()" style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; white-space: nowrap;">Vorschau</button>
+                        <button id="contextSaveBtn" onclick="saveContextFile()" style="background: var(--accent); border: none; color: white; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: none; white-space: nowrap;">Speichern</button>
                     </div>
                 </div>
-                <textarea id="contextEditor" style="flex: 1; width: 100%; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.9rem; resize: none; line-height: 1.6;" placeholder="Datei auswählen..."></textarea>
-                <div id="contextPreview" class="docs-content" style="display: none; flex: 1; width: 100%; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; overflow-y: auto;"></div>
-                <div id="contextMeta" style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary);"></div>
+                <textarea id="contextEditor" style="flex: 1; width: 100%; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.9rem; resize: none; line-height: 1.6; box-sizing: border-box; min-height: 300px;" placeholder="Datei auswählen..."></textarea>
+                <div id="contextPreview" class="docs-content" style="display: none; flex: 1; width: 100%; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; overflow-y: auto; box-sizing: border-box; min-height: 300px;"></div>
+                <div id="contextMeta" style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); flex-shrink: 0;"></div>
             </div>
         </div>
     </div>
@@ -1575,6 +1575,9 @@
             }
             if (tab === 'status') {
                 loadActivityLog();
+            }
+            if (tab === 'projects' && activeProjectId) {
+                renderBoard();
             }
             if (tab === 'context') {
                 loadContextFiles();

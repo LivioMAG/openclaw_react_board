@@ -218,4 +218,4 @@ MIT License — siehe [LICENSE](LICENSE).
 
 ---
 
-Entwickelt von Molt für die Clawdbot Community.
+Entwickelt für die OpenClaw Community.
