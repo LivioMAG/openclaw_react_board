@@ -7,6 +7,9 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
   const { projectId } = useParams()
   const [activeTab, setActiveTab] = useState('board')
   const [project, setProject] = useState(null)
+  const [projectFiles, setProjectFiles] = useState([])
+  const [filesLoading, setFilesLoading] = useState(false)
+  const [filesError, setFilesError] = useState('')
 
   useEffect(() => {
     if (projectId && projectId !== activeProjectId) {
@@ -18,6 +21,60 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
     const currentProject = projects.find(p => p.id === activeProjectId)
     setProject(currentProject)
   }, [activeProjectId, projects])
+
+  useEffect(() => {
+    if (!project || activeTab !== 'files') {
+      return
+    }
+
+    const fetchProjectFiles = async () => {
+      setFilesLoading(true)
+      setFilesError('')
+
+      try {
+        const response = await fetch(`/api/projects/${project.id}/files`)
+        const data = await response.json()
+
+        if (!response.ok) {
+          setProjectFiles([])
+          setFilesError(data.error || 'Dateiliste konnte nicht geladen werden.')
+          return
+        }
+
+        setProjectFiles(data.tree || [])
+      } catch (error) {
+        console.error('Error loading project files:', error)
+        setProjectFiles([])
+        setFilesError('Dateiliste konnte nicht geladen werden.')
+      } finally {
+        setFilesLoading(false)
+      }
+    }
+
+    fetchProjectFiles()
+  }, [activeTab, project])
+
+  const flattenFiles = (nodes, depth = 0) => {
+    return nodes.flatMap(node => {
+      if (node.type === 'directory') {
+        return [
+          { ...node, depth, isDirectoryLabel: true },
+          ...flattenFiles(node.children || [], depth + 1)
+        ]
+      }
+
+      return [{ ...node, depth, isDirectoryLabel: false }]
+    })
+  }
+
+  const getDownloadUrl = (filePath) => {
+    const encodedPath = filePath
+      .split('/')
+      .map(segment => encodeURIComponent(segment))
+      .join('/')
+
+    return `/api/projects/${project.id}/files/${encodedPath}`
+  }
 
   const handleTaskAdd = async (columnId, title) => {
     try {
@@ -106,7 +163,43 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
 
       {activeTab === 'files' && (
         <div className="files-browser">
-          <p>File Browser - Coming Soon</p>
+          {filesLoading && <p>Dateiliste wird geladen…</p>}
+
+          {!filesLoading && filesError && (
+            <p className="files-error">⚠️ {filesError}</p>
+          )}
+
+          {!filesLoading && !filesError && (() => {
+            const flatFiles = flattenFiles(projectFiles)
+
+            return (
+            <div className="files-listing">
+              {flatFiles.length === 0 ? (
+                <p>Keine Dateien gefunden.</p>
+              ) : (
+                flatFiles.map(item => (
+                  <div
+                    key={item.path}
+                    className={`files-list-item ${item.isDirectoryLabel ? 'directory' : 'file'}`}
+                    style={{ paddingLeft: `${1 + item.depth * 1.25}rem` }}
+                  >
+                    <span className="files-item-name">{item.icon} {item.name}</span>
+
+                    {!item.isDirectoryLabel && (
+                      <a
+                        className="download-link"
+                        href={getDownloadUrl(item.path)}
+                        download={item.name}
+                      >
+                        ⬇️ Download
+                      </a>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+            )
+          })()}
         </div>
       )}
 
