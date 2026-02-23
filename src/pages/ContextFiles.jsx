@@ -9,6 +9,7 @@ function ContextFiles() {
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState('')
   const [showPreview, setShowPreview] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     fetchContextFiles()
@@ -18,11 +19,18 @@ function ContextFiles() {
     try {
       const response = await fetch('/api/context-files')
       const data = await response.json()
-      setFiles(data.files || [])
-      
-      // Auto-select first file
-      if (data.files?.length > 0 && !selectedFile) {
-        selectFile(data.files[0])
+      const nextFiles = data.files || []
+      setFiles(nextFiles)
+
+      if (selectedFile) {
+        const updatedSelectedFile = nextFiles.find(file => file.name === selectedFile.name)
+        if (updatedSelectedFile) {
+          setSelectedFile(updatedSelectedFile)
+        }
+      }
+
+      if (nextFiles.length > 0 && !selectedFile) {
+        selectFile(nextFiles[0])
       }
     } catch (error) {
       console.error('Error fetching context files:', error)
@@ -33,33 +41,87 @@ function ContextFiles() {
     setSelectedFile(file)
     setIsEditing(false)
     setShowPreview(false)
-    
+
     try {
       const response = await fetch(`/api/context-files/${file.name}`)
-      const content = await response.text()
-      setFileContent(content)
-      setEditedContent(content)
+      const contentType = response.headers.get('content-type') || ''
+
+      if (!response.ok) {
+        throw new Error('Datei konnte nicht geladen werden')
+      }
+
+      if (contentType.includes('application/json')) {
+        const data = await response.json()
+        const content = data.content || ''
+        setFileContent(content)
+        setEditedContent(content)
+      } else {
+        const content = await response.text()
+        setFileContent(content)
+        setEditedContent(content)
+      }
     } catch (error) {
       console.error('Error loading file:', error)
       setFileContent('Fehler beim Laden der Datei')
+      setEditedContent('')
     }
   }
 
   const handleSave = async () => {
+    if (!selectedFile) {
+      return
+    }
+
     try {
+      const payload = { content: editedContent }
       const response = await fetch(`/api/context-files/${selectedFile.name}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'text/plain' },
-        body: editedContent
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       })
-      
+
       if (response.ok) {
         setFileContent(editedContent)
         setIsEditing(false)
-        fetchContextFiles() // Refresh file list
+        fetchContextFiles()
       }
     } catch (error) {
       console.error('Error saving file:', error)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!selectedFile) {
+      return
+    }
+
+    const confirmed = window.confirm(`Datei wirklich löschen?\n${selectedFile.name}`)
+    if (!confirmed) {
+      return
+    }
+
+    setIsDeleting(true)
+
+    try {
+      const response = await fetch(`/api/context-files/${selectedFile.name}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Datei konnte nicht gelöscht werden')
+      }
+
+      setSelectedFile(null)
+      setFileContent('')
+      setEditedContent('')
+      setIsEditing(false)
+      await fetchContextFiles()
+    } catch (error) {
+      console.error('Error deleting file:', error)
+      alert(error.message || 'Datei konnte nicht gelöscht werden')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -76,7 +138,7 @@ function ContextFiles() {
           <h2>🧠 Context-Speicher</h2>
           <p>Agent-Konfiguration & Memory</p>
         </div>
-        
+
         <div className="files-list">
           {files.map(file => (
             <div
@@ -109,6 +171,9 @@ function ContextFiles() {
                     <button onClick={() => setIsEditing(true)}>
                       ✏️ Bearbeiten
                     </button>
+                    <button onClick={handleDelete} className="danger-btn" disabled={isDeleting}>
+                      {isDeleting ? '⏳ Lösche…' : '🗑️ Löschen'}
+                    </button>
                   </>
                 )}
                 {isEditing && (
@@ -123,7 +188,7 @@ function ContextFiles() {
                 )}
               </div>
             </div>
-            
+
             <div className="editor-content">
               {showPreview && !isEditing ? (
                 <div className="markdown-preview">

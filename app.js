@@ -810,6 +810,33 @@ app.put('/api/context-files/:filename', (req, res) => {
     }
 });
 
+
+
+// DELETE context file
+app.delete('/api/context-files/:filename', (req, res) => {
+    const { filename } = req.params;
+
+    const allowed = CONTEXT_FILES.find(f => f.name === filename);
+    if (!allowed) {
+        return res.status(403).json({ error: 'Datei nicht erlaubt' });
+    }
+
+    const filePath = path.join(WORKSPACE_PATH, filename);
+
+    try {
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ error: 'Datei nicht gefunden' });
+        }
+
+        fs.unlinkSync(filePath);
+        console.log(`[CONTEXT] Deleted: ${filename}`);
+
+        res.json({ success: true, name: filename });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ==========================================
 // File Browser API
 // ==========================================

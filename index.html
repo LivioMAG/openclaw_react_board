@@ -1504,6 +1504,7 @@
                     </div>
                     <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
                         <button id="contextPreviewBtn" onclick="toggleContextPreview()" style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; white-space: nowrap;">Vorschau</button>
+                        <button id="contextDeleteBtn" onclick="deleteContextFile()" style="background: #8b1f1f; border: none; color: white; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: none; white-space: nowrap;">Löschen</button>
                         <button id="contextSaveBtn" onclick="saveContextFile()" style="background: var(--accent); border: none; color: white; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: none; white-space: nowrap;">Speichern</button>
                     </div>
                 </div>
@@ -1946,6 +1947,7 @@
                 originalContextContent = data.content;
                 
                 document.getElementById('contextSaveBtn').style.display = 'inline-block';
+                document.getElementById('contextDeleteBtn').style.display = 'inline-block';
                 
                 if (data.modifiedAt) {
                     document.getElementById('contextMeta').textContent = 
@@ -2010,6 +2012,47 @@
             } catch (error) {
                 console.error('Error saving context file:', error);
                 alert('Fehler beim Speichern');
+            }
+        }
+
+
+        async function deleteContextFile() {
+            if (!activeContextFile) return;
+
+            const confirmed = confirm(`Datei wirklich löschen?
+${activeContextFile}`);
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch(`/api/context-files/${encodeURIComponent(activeContextFile)}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Datei konnte nicht gelöscht werden');
+                }
+
+                const deletedFile = activeContextFile;
+                activeContextFile = null;
+                originalContextContent = '';
+                contextPreviewMode = false;
+
+                document.getElementById('contextFileName').textContent = 'Datei auswählen';
+                document.getElementById('contextFileDesc').textContent = '';
+                document.getElementById('contextEditor').value = '';
+                document.getElementById('contextMeta').textContent = `${deletedFile} gelöscht`;
+                document.getElementById('contextPreview').style.display = 'none';
+                document.getElementById('contextEditor').style.display = 'block';
+                document.getElementById('contextPreviewBtn').textContent = 'Vorschau';
+                document.getElementById('contextSaveBtn').style.display = 'none';
+                document.getElementById('contextDeleteBtn').style.display = 'none';
+
+                await loadContextFiles();
+            } catch (error) {
+                console.error('Error deleting context file:', error);
+                alert(error.message || 'Datei konnte nicht gelöscht werden');
             }
         }
 

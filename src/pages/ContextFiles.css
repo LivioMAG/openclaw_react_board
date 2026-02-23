@@ -134,6 +134,22 @@
   opacity: 0.8;
 }
 
+
+.editor-actions .danger-btn {
+  background: #8b1f1f;
+  border-color: #8b1f1f;
+  color: #fff;
+}
+
+.editor-actions .danger-btn:hover {
+  opacity: 0.85;
+}
+
+.editor-actions .danger-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .editor-content {
   flex: 1;
   padding: 1.5rem;
