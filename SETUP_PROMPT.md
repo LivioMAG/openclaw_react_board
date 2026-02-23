@@ -1,20 +1,20 @@
-# Kanban Board Setup - Prompt für Clawdbot
+# Kanban Board Setup - Prompt für Voltiy
 
-Kopiere den Setup-Prompt und gib ihn deinem Clawdbot/openclaw Agent.
+Kopiere den Setup-Prompt und gib ihn deinem Voltiy/voltiy Agent.
 
 ---
 
 ## Setup-Prompt
 
 ```
-Bitte installiere und konfiguriere dieses speziell für OpenClaw entwickelte Projektmanagement inkl. Kanban Board, File Explorer und Kontext-Manager von GitHub für mich. Darauf arbeiten wir zukünftig gemeinsam an unseren Softwareprojekten:
+Bitte installiere und konfiguriere dieses speziell für Voltiy entwickelte Projektmanagement inkl. Kanban Board, File Explorer und Kontext-Manager von GitHub für mich. Darauf arbeiten wir zukünftig gemeinsam an unseren Softwareprojekten:
 
 SETUP:
-1. cd ~/.openclaw/workspace
-2. git clone https://github.com/LivioMAG/openclaw_react_board.git kanban
+1. cd ~/.voltiy/workspace
+2. git clone https://github.com/LivioMAG/voltiy_react_board.git kanban
 3. cd kanban && npm install
 4. Prüfe ob bereits Projekte existieren und führe ggf. ./update-projects.js aus
-5. Starte den Server: OPENCLAW_WORKSPACE=$(cd .. && pwd) npm start
+5. Starte den Server: VOLTIY_WORKSPACE=$(cd .. && pwd) npm start
    (Setzt den Context-Files Pfad automatisch auf dein Workspace-Verzeichnis)
 
 KONFIGURATION:
@@ -48,11 +48,11 @@ Diesen Block sollte der Agent in seine MEMORY.md einfügen (kuratierte Langzeit-
 
     ## Kanban Board
 
-    **Start**: `cd ~/.openclaw/workspace/kanban && OPENCLAW_WORKSPACE=$(cd .. && pwd) npm start`
+    **Start**: `cd ~/.voltiy/workspace/kanban && VOLTIY_WORKSPACE=$(cd .. && pwd) npm start`
     **URL**: http://localhost:3000
 
     ### Wichtige Pfade:
-    - **Board-Daten**: ~/.openclaw/workspace/kanban/tasks.json
+    - **Board-Daten**: ~/.voltiy/workspace/kanban/tasks.json
     - **Feature-Files**: {projekt}/features/PROJ-{nr}-{feature}.md
 
     ### Bei Projekt-Anlage IMMER:
@@ -67,7 +67,7 @@ Diesen Block sollte der Agent in seine MEMORY.md einfügen (kuratierte Langzeit-
     1. Neues Projekt → Ordner anlegen (inkl. `features/`), dann im Board mit richtigem `projectPath`
     2. Feature-Files → In `features/` ablegen, mit `featureFile` im Task verknüpfen
     3. Status Updates → API: `PUT /api/tasks/{id} {"status": "in-progress"}`
-    4. Context-Dateien → Werden aus OPENCLAW_WORKSPACE geladen
+    4. Context-Dateien → Werden aus VOLTIY_WORKSPACE geladen
 
     ### Quick Commands:
     curl http://localhost:3000/api/projects
@@ -75,7 +75,7 @@ Diesen Block sollte der Agent in seine MEMORY.md einfügen (kuratierte Langzeit-
 
     ### Troubleshooting:
     - File Browser leer? → Check `projectPath` (muss absolut sein)
-    - Context Files fehlen? → Prüfe OPENCLAW_WORKSPACE Pfad
+    - Context Files fehlen? → Prüfe VOLTIY_WORKSPACE Pfad
     - Server down? → Neu starten (siehe Start-Befehl oben)
 
 ---
@@ -103,8 +103,8 @@ Nutze ggf. update-projects.js um die Pfade zu korrigieren.
 **Context Files fehlen:**
 ```
 Die Context-Speicher Seite zeigt keine Dateien.
-Prüfe den OPENCLAW_WORKSPACE Pfad. Er sollte auf dein Workspace-Verzeichnis zeigen.
-Starte den Server ggf. neu mit: OPENCLAW_WORKSPACE=/dein/workspace/pfad npm start
+Prüfe den VOLTIY_WORKSPACE Pfad. Er sollte auf dein Workspace-Verzeichnis zeigen.
+Starte den Server ggf. neu mit: VOLTIY_WORKSPACE=/dein/workspace/pfad npm start
 ```
 
 **Server startet nicht:**
