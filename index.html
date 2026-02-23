@@ -2242,6 +2242,7 @@ ${activeContextFile}`);
         let currentFilePath = null;
         let originalFileContent = '';
         let hasUnsavedChanges = false;
+        let activeFileRequestId = 0;
         let activeTeamMemberId = null;
         let activeContactId = null;
 
@@ -2655,6 +2656,8 @@ async function openFile(filePath) {
         return;
     }
 
+    const requestId = ++activeFileRequestId;
+
     document.querySelectorAll('.file-tree-item.file').forEach(item => {
         item.classList.toggle('active', item.dataset.path === filePath);
     });
@@ -2704,6 +2707,7 @@ async function openFile(filePath) {
 
             // Explizit nach dem Einfügen setzen, damit Browser den Wechsel zuverlässig erkennt.
             requestAnimationFrame(() => {
+                if (requestId !== activeFileRequestId) return;
                 pdfFrame.src = previewUrl;
             });
         } else {
@@ -2720,6 +2724,7 @@ async function openFile(filePath) {
             editorContent.appendChild(imageWrapper);
 
             requestAnimationFrame(() => {
+                if (requestId !== activeFileRequestId) return;
                 img.src = previewUrl;
             });
 
@@ -2740,6 +2745,10 @@ async function openFile(filePath) {
     try {
         const response = await fetch(fileUrl);
         const data = await response.json();
+
+        if (requestId !== activeFileRequestId) {
+            return;
+        }
 
         if (data.error) {
             alert('Fehler: ' + data.error);
@@ -2772,6 +2781,7 @@ async function openFile(filePath) {
         });
 
         codeEditor.on('change', () => {
+            if (requestId !== activeFileRequestId || !codeEditor) return;
             hasUnsavedChanges = codeEditor.getValue() !== originalFileContent;
             updateSaveButton();
         });
