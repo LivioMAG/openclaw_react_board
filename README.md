@@ -1,6 +1,6 @@
-# OpenClaw React Board
+# Voltiy React Board
 
-Multi-Project Kanban Board mit integriertem File Browser und Context-Speicher. Optimiert für Clawdbot/openclaw Agent-Workflows.
+Multi-Project Kanban Board mit integriertem File Browser und Context-Speicher. Optimiert für Voltiy/voltiy Agent-Workflows.
 
 ## Features
 
@@ -18,23 +18,23 @@ Multi-Project Kanban Board mit integriertem File Browser und Context-Speicher. O
 ### Installation
 
 ```bash
-git clone https://github.com/AlexPEClub/openclaw_react_board.git
-cd openclaw_react_board
+git clone https://github.com/AlexPEClub/voltiy_react_board.git
+cd voltiy_react_board
 npm install
 npm start
 ```
 
 Das Board läuft dann auf: http://localhost:3000
 
-### Clawdbot/openclaw Agent Installation
+### Voltiy/voltiy Agent Installation
 
 Gib deinem Agent diesen Prompt:
 
 ```
-cd ~/.openclaw/workspace
-git clone https://github.com/AlexPEClub/openclaw_react_board.git kanban
+cd ~/.voltiy/workspace
+git clone https://github.com/AlexPEClub/voltiy_react_board.git kanban
 cd kanban && npm install && ./update-projects.js
-OPENCLAW_WORKSPACE=$(cd .. && pwd) npm start
+VOLTIY_WORKSPACE=$(cd .. && pwd) npm start
 ```
 
 Detaillierte Setup-Prompts findest du in `SETUP_PROMPT.md`.
@@ -46,8 +46,8 @@ Detaillierte Setup-Prompts findest du in `SETUP_PROMPT.md`.
 docker-compose up
 
 # Oder direkt mit Docker
-docker build -t openclaw-kanban .
-docker run -p 3000:3000 -v $(pwd)/data:/app/data openclaw-kanban
+docker build -t voltiy-kanban .
+docker run -p 3000:3000 -v $(pwd)/data:/app/data voltiy-kanban
 ```
 
 ## Konfiguration
@@ -56,12 +56,12 @@ docker run -p 3000:3000 -v $(pwd)/data:/app/data openclaw-kanban
 
 ```bash
 PORT=3000                                    # Server Port (default: 3000)
-OPENCLAW_WORKSPACE=/data/.openclaw/workspace # Context-Files Pfad (default: /data/.openclaw/workspace)
+VOLTIY_WORKSPACE=/data/.voltiy/workspace # Context-Files Pfad (default: /data/.voltiy/workspace)
 ```
 
 ### Context Files
 
-Der Server lädt folgende Workspace-Dateien aus dem per `OPENCLAW_WORKSPACE` konfigurierten Pfad:
+Der Server lädt folgende Workspace-Dateien aus dem per `VOLTIY_WORKSPACE` konfigurierten Pfad:
 
 | Datei | Beschreibung |
 |---|---|
@@ -76,7 +76,7 @@ Der Server lädt folgende Workspace-Dateien aus dem per `OPENCLAW_WORKSPACE` kon
 Falls der Standard-Pfad nicht passt, kann er per Umgebungsvariable überschrieben werden:
 
 ```bash
-OPENCLAW_WORKSPACE=/custom/path PORT=3000 node app.js
+VOLTIY_WORKSPACE=/custom/path PORT=3000 node app.js
 ```
 
 ## Projekt-Struktur
@@ -84,7 +84,7 @@ OPENCLAW_WORKSPACE=/custom/path PORT=3000 node app.js
 ### Erwartete Workspace-Struktur
 
 ```
-~/.openclaw/workspace/       # Standard OpenClaw Workspace
+~/.voltiy/workspace/       # Standard Voltiy Workspace
 ├── kanban/                  # Das Kanban Board
 ├── projects/                # Deine Projekte (optional)
 │   ├── mein-projekt/
@@ -202,7 +202,7 @@ kill -9 <PID>
 - `update-projects.js` ausführen um Pfade nachträglich zu setzen
 
 **Context Files fehlen?**
-- Dateien müssen im per `OPENCLAW_WORKSPACE` konfigurierten Pfad liegen
+- Dateien müssen im per `VOLTIY_WORKSPACE` konfigurierten Pfad liegen
 - Prüfen: `curl http://localhost:3000/api/context-files`
 
 **Status wird nicht aktualisiert?**
@@ -218,4 +218,4 @@ MIT License — siehe [LICENSE](LICENSE).
 
 ---
 
-Entwickelt für die OpenClaw Community.
+Entwickelt für die Voltiy Community.
