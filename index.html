@@ -1297,20 +1297,17 @@
                             </div>
                         </div>
                         <div class="editor-actions">
+                            <a id="editorDownloadBtn" class="editor-btn" style="background: var(--bg-tertiary); border: 1px solid var(--border); text-decoration: none; color: var(--text-primary); display: none; align-items: center; justify-content: center; padding: 0.4rem 0.8rem;" download>
+                                📥 Download
+                            </a>
+                            <button class="editor-btn" id="editorDeleteBtn" onclick="deleteCurrentFile()" style="background: #422; border: 1px solid #733; color: #f99; display: none;">
+                                🗑️ Löschen
+                            </button>
                             <button class="editor-btn editor-btn-save" id="editorSaveBtn" onclick="saveCurrentFile()" disabled>
                                 Speichern
                             </button>
                         </div>
                     </div>
-                    <div class="editor-actions">
-    <a id="editorDownloadBtn" class="editor-btn" style="background: var(--bg-tertiary); border: 1px solid var(--border); text-decoration: none; color: var(--text-primary); display: none; align-items: center; justify-content: center; padding: 0.4rem 0.8rem;" download>
-        📥 Download
-    </a>
-
-    <button class="editor-btn editor-btn-save" id="editorSaveBtn" onclick="saveCurrentFile()" disabled>
-        Speichern
-    </button>
-</div>
                     <div class="editor-content" id="editorContent">
                         <div class="editor-empty" id="editorEmpty">
                             <div class="editor-empty-icon">📝</div>
@@ -2670,6 +2667,7 @@ async function openFile(filePath) {
     const editorContent = document.getElementById('editorContent');
     const saveBtn = document.getElementById('editorSaveBtn');
     const downloadBtn = document.getElementById('editorDownloadBtn');
+    const deleteBtn = document.getElementById('editorDeleteBtn');
 
     document.getElementById('editorHeader').style.display = 'flex';
     document.getElementById('editorEmpty').style.display = 'none';
@@ -2678,6 +2676,12 @@ async function openFile(filePath) {
         downloadBtn.style.display = 'flex';
         downloadBtn.href = fileUrl;
         downloadBtn.setAttribute('download', filePath.split('/').pop());
+    }
+
+    if (deleteBtn) {
+        deleteBtn.style.display = 'inline-block';
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = '🗑️ Löschen';
     }
 
     const previewableExtensions = ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'];
@@ -2709,10 +2713,19 @@ async function openFile(filePath) {
             const img = document.createElement('img');
             img.alt = filePath;
             img.style.cssText = 'max-width:100%; max-height:100%; object-fit:contain;';
-            img.src = previewUrl;
 
+            // Wichtig: src erst nach dem Einfügen setzen, damit der Browser beim
+            // Wechsel zwischen zwei Bildern zuverlässig neu rendert.
             imageWrapper.appendChild(img);
             editorContent.appendChild(imageWrapper);
+
+            requestAnimationFrame(() => {
+                img.src = previewUrl;
+            });
+
+            img.onerror = () => {
+                img.alt = `${filePath} (Konnte nicht geladen werden)`;
+            };
         }
 
         currentFilePath = filePath;
@@ -2817,7 +2830,7 @@ async function openFile(filePath) {
             btn.disabled = true;
             
             try {
-                const response = await fetch(`/api/projects/${activeProjectId}/files/${currentFilePath}`, {
+                const response = await fetch(getProjectFileUrl(currentFilePath), {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content })
@@ -2844,6 +2857,57 @@ async function openFile(filePath) {
                 alert('Fehler beim Speichern');
                 btn.textContent = 'Speichern';
                 btn.disabled = false;
+            }
+        }
+
+
+        async function deleteCurrentFile() {
+            if (!activeProjectId || !currentFilePath) return;
+
+            const confirmed = confirm(`Datei wirklich löschen?\n\n${currentFilePath}`);
+            if (!confirmed) return;
+
+            const deleteBtn = document.getElementById('editorDeleteBtn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = '⏳ Lösche...';
+            }
+
+            try {
+                const response = await fetch(getProjectFileUrl(currentFilePath), {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || 'Datei konnte nicht gelöscht werden');
+                }
+
+                currentFilePath = null;
+                codeEditor = null;
+                hasUnsavedChanges = false;
+                originalFileContent = '';
+
+                document.getElementById('editorHeader').style.display = 'none';
+                document.getElementById('editorEmpty').style.display = 'flex';
+                document.getElementById('editorContent').innerHTML = `
+                    <div class="editor-empty" id="editorEmpty">
+                        <div class="editor-empty-icon">📝</div>
+                        <div class="editor-empty-text">Datei auswählen</div>
+                        <div class="editor-empty-hint">Klicke auf eine Datei im Baum links</div>
+                    </div>
+                `;
+
+                await loadFileTree();
+            } catch (error) {
+                console.error('Error deleting file:', error);
+                alert(error.message || 'Datei konnte nicht gelöscht werden');
+            } finally {
+                if (deleteBtn) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.textContent = '🗑️ Löschen';
+                }
             }
         }
 
