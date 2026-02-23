@@ -44,7 +44,7 @@ function Activities() {
     <div className="activities-page">
       <div className="activities-header">
         <h1>📜 Aktivitäten</h1>
-        <p>Chronologische Übersicht aller Projektaktivitäten</p>
+        <p>Chronologische Übersicht aller Aufgabenbereichsaktivitäten</p>
       </div>
 
       <div className="activities-timeline">

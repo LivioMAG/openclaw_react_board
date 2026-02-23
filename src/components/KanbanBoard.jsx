@@ -12,7 +12,7 @@ function KanbanBoard({ project, onTaskUpdate, onTaskAdd }) {
   const [newTaskInputs, setNewTaskInputs] = useState({})
 
   if (!project) {
-    return <div className="empty-board">Kein Projekt ausgewählt</div>
+    return <div className="empty-board">Kein Aufgabenbereich ausgewählt</div>
   }
 
   const handleAddTask = async (columnId) => {

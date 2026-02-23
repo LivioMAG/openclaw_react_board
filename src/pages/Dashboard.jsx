@@ -39,13 +39,13 @@ function Dashboard({ projects }) {
     <div className="dashboard-page">
       <div className="dashboard-header">
         <h1>Dashboard</h1>
-        <p>Überblick über alle Projekte und Aktivitäten</p>
+        <p>Überblick über alle Aufgabenbereiche und Aktivitäten</p>
       </div>
 
       <div className="dashboard-stats">
         <div className="stat-card">
           <div className="stat-value">{projects.length}</div>
-          <div className="stat-label">Projekte</div>
+          <div className="stat-label">Aufgabenbereiche</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">{stats.totalTasks}</div>
@@ -63,7 +63,7 @@ function Dashboard({ projects }) {
 
       <div className="dashboard-content">
         <div className="dashboard-projects">
-          <h2>📁 Projekte</h2>
+          <h2>📁 Aufgabenbereiche</h2>
           <div className="project-grid">
             {projects.map(project => (
               <div 
