@@ -40,7 +40,6 @@ function ContextFiles() {
   const selectFile = async (file) => {
     setSelectedFile(file)
     setIsEditing(false)
-    setShowPreview(false)
 
     try {
       const response = await fetch(`/api/context-files/${file.name}`)
