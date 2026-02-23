@@ -56,7 +56,7 @@ function Sidebar({ projects, activeProjectId, setActiveProjectId }) {
           onClick={() => setProjectsExpanded(!projectsExpanded)}
         >
           <span className="nav-icon">📁</span>
-          <span className="nav-label">Projekte</span>
+          <span className="nav-label">Aufgabenbereiche</span>
         </div>
         
         {projectsExpanded && (
@@ -75,7 +75,7 @@ function Sidebar({ projects, activeProjectId, setActiveProjectId }) {
               ))}
             </div>
             <button className="add-project-btn">
-              + Neues Projekt
+              + Neuer Aufgabenbereich
             </button>
           </div>
         )}

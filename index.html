@@ -1087,13 +1087,13 @@
             <!-- Projects Menu Item -->
             <div class="nav-item" data-tab="projects" onclick="switchTab('projects')">
                 <span class="nav-icon">📁</span>
-                <span class="nav-label">Projekte</span>
+                <span class="nav-label">Aufgabenbereiche</span>
             </div>
             
             <!-- Projects Submenu (indented) -->
             <div id="projectsSubmenu" class="nav-submenu">
                 <div class="projects-list" id="projectsList"></div>
-                <button class="add-project-btn" onclick="openProjectModal()">+ Neues Projekt</button>
+                <button class="add-project-btn" onclick="openProjectModal()">+ Neuer Aufgabenbereich</button>
             </div>
             
             <!-- Status Menu Item -->
@@ -1122,7 +1122,7 @@
             <div class="dashboard-stats">
                 <div class="stat-card">
                     <div class="stat-number" id="dashboardProjectCount">0</div>
-                    <div class="stat-label">Projekte</div>
+                    <div class="stat-label">Aufgabenbereiche</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="dashboardTaskCount">0</div>
@@ -1145,7 +1145,7 @@
             <!-- Project Header -->
             <div class="board-header">
                 <div class="board-header-info">
-                    <h1 id="projectTitle">Projekt auswählen</h1>
+                    <h1 id="projectTitle">Aufgabenbereich auswählen</h1>
                     <p id="projectDesc"></p>
                 </div>
             </div>
@@ -1216,11 +1216,11 @@
             <div class="context-tab-container" id="contextTabContainer">
                 <div class="context-content-wrapper">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <div class="docs-header" style="margin: 0;">📚 Projekt Kontext</div>
+                        <div class="docs-header" style="margin: 0;">📚 Aufgabenbereich Kontext</div>
                         <button onclick="openDocsModal()" style="background: none; border: 1px solid var(--border); color: var(--text-secondary); padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: all 0.15s ease;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--text-secondary)'">Bearbeiten</button>
                     </div>
                     <div class="docs-content" id="docsContent">
-                        <p>Projekt auswählen um Dokumentation zu sehen</p>
+                        <p>Aufgabenbereich auswählen um Dokumentation zu sehen</p>
                     </div>
                 </div>
             </div>
@@ -1244,9 +1244,9 @@
     <div class="modal" id="projectModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeProjectModal()">✕</button>
-            <div class="modal-header">Neues Projekt</div>
+            <div class="modal-header">Neuer Aufgabenbereich</div>
             <div class="form-group">
-                <label>Projektname</label>
+                <label>Aufgabenbereichsname</label>
                 <input type="text" id="projectNameInput" placeholder="z.B. Mobile App">
             </div>
             <div class="form-group">
@@ -1255,7 +1255,7 @@
             </div>
             <div class="form-group">
                 <label>Dokumentation</label>
-                <textarea id="projectDocsInput" placeholder="# Projekt&#10;&#10;Dokumentation hinzufügen..." style="min-height: 150px;"></textarea>
+                <textarea id="projectDocsInput" placeholder="# Aufgabenbereich&#10;&#10;Dokumentation hinzufügen..." style="min-height: 150px;"></textarea>
             </div>
             <button class="btn" onclick="createProject()">Erstellen</button>
         </div>
@@ -1496,7 +1496,7 @@
             const description = document.getElementById('projectDescInput').value;
             const docs = document.getElementById('projectDocsInput').value;
 
-            if (!name.trim()) return alert('Projektname erforderlich');
+            if (!name.trim()) return alert('Aufgabenbereichsname erforderlich');
 
             try {
                 await fetch('/api/projects', {
@@ -1527,7 +1527,7 @@
         }
 
         function openDocsModal() {
-            if (!activeProjectId) return alert('Bitte zuerst ein Projekt auswählen');
+            if (!activeProjectId) return alert('Bitte zuerst einen Aufgabenbereich auswählen');
             const projects = document.querySelector('.projects-list').innerHTML;
             fetchProjects().then(projects => {
                 const project = projects.find(p => p.id === activeProjectId);
@@ -1997,8 +1997,8 @@
                         fileTree.innerHTML = `
                             <div class="no-path-message">
                                 <div class="icon">📂</div>
-                                <div class="title">Kein Projektpfad</div>
-                                <div class="desc">Bitte setze den Projektpfad in den Projekteinstellungen.</div>
+                                <div class="title">Kein Aufgabenbereichspfad</div>
+                                <div class="desc">Bitte setze den Aufgabenbereichspfad in den Aufgabenbereich-Einstellungen.</div>
                                 <button class="set-path-btn" onclick="promptProjectPath()">Pfad setzen</button>
                             </div>
                         `;
@@ -2239,7 +2239,7 @@ async function openFile(filePath) {
             const project = projects.find(p => p.id === activeProjectId);
             
             const currentPath = project?.projectPath || '';
-            const newPath = prompt('Projektpfad eingeben:', currentPath);
+            const newPath = prompt('Aufgabenbereichspfad eingeben:', currentPath);
             
             if (newPath && newPath.trim()) {
                 try {
