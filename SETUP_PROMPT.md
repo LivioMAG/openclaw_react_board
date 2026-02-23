@@ -11,7 +11,7 @@ Bitte installiere und konfiguriere dieses speziell für OpenClaw entwickelte Pro
 
 SETUP:
 1. cd ~/.openclaw/workspace
-2. git clone https://github.com/AlexPEClub/openclaw_react_board.git kanban
+2. git clone https://github.com/LivioMAG/openclaw_react_board.git kanban
 3. cd kanban && npm install
 4. Prüfe ob bereits Projekte existieren und führe ggf. ./update-projects.js aus
 5. Starte den Server: OPENCLAW_WORKSPACE=$(cd .. && pwd) npm start
