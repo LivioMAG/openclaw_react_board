@@ -28,6 +28,7 @@ const DEFAULT_KANBAN = {
         Sollerlos: '85',
         Regie: '114.0'
     }],
+    contacts: [],
     createdAt: new Date().toISOString()
 };
 
@@ -43,7 +44,8 @@ function ensureSingleKanban(data = {}) {
             id: DEFAULT_KANBAN.id,
             name: DEFAULT_KANBAN.name,
             tasks: Array.isArray(existingKanban.tasks) ? existingKanban.tasks : [],
-            team: Array.isArray(existingKanban.team) ? existingKanban.team : DEFAULT_KANBAN.team
+            team: Array.isArray(existingKanban.team) ? existingKanban.team : DEFAULT_KANBAN.team,
+            contacts: Array.isArray(existingKanban.contacts) ? existingKanban.contacts : DEFAULT_KANBAN.contacts
         }]
     };
 }
@@ -284,6 +286,114 @@ app.delete('/api/projects/:projectId/team/:memberId', (req, res) => {
     }
 
     project.team.splice(memberIndex, 1);
+    writeData(data);
+
+    res.json({ success: true });
+});
+
+// GET contacts from project
+app.get('/api/projects/:projectId/contacts', (req, res) => {
+    const { projectId } = req.params;
+
+    const data = readData();
+    const project = data.projects.find(p => p.id === projectId);
+
+    if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json({ contacts: Array.isArray(project.contacts) ? project.contacts : [] });
+});
+
+// POST add contact
+app.post('/api/projects/:projectId/contacts', (req, res) => {
+    const { projectId } = req.params;
+    const { name, role, email, phone, priority } = req.body;
+
+    if (!name || !role) {
+        return res.status(400).json({ error: 'Name und Rolle sind erforderlich.' });
+    }
+
+    const data = readData();
+    const project = data.projects.find(p => p.id === projectId);
+
+    if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (!Array.isArray(project.contacts)) {
+        project.contacts = [];
+    }
+
+    const newContact = {
+        id: uuidv4().slice(0, 8),
+        name,
+        role,
+        email: email || '',
+        phone: phone || '',
+        priority: priority || 'Normal'
+    };
+
+    project.contacts.push(newContact);
+    writeData(data);
+
+    res.status(201).json(newContact);
+});
+
+// PUT update contact
+app.put('/api/projects/:projectId/contacts/:contactId', (req, res) => {
+    const { projectId, contactId } = req.params;
+    const updates = req.body;
+
+    const data = readData();
+    const project = data.projects.find(p => p.id === projectId);
+
+    if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (!Array.isArray(project.contacts)) {
+        project.contacts = [];
+    }
+
+    const contactIndex = project.contacts.findIndex(contact => contact.id === contactId);
+
+    if (contactIndex === -1) {
+        return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    project.contacts[contactIndex] = {
+        ...project.contacts[contactIndex],
+        ...updates,
+        id: project.contacts[contactIndex].id
+    };
+
+    writeData(data);
+    res.json(project.contacts[contactIndex]);
+});
+
+// DELETE contact
+app.delete('/api/projects/:projectId/contacts/:contactId', (req, res) => {
+    const { projectId, contactId } = req.params;
+
+    const data = readData();
+    const project = data.projects.find(p => p.id === projectId);
+
+    if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (!Array.isArray(project.contacts)) {
+        project.contacts = [];
+    }
+
+    const contactIndex = project.contacts.findIndex(contact => contact.id === contactId);
+
+    if (contactIndex === -1) {
+        return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    project.contacts.splice(contactIndex, 1);
     writeData(data);
 
     res.json({ success: true });

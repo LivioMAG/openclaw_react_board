@@ -1019,13 +1019,15 @@
             display: flex;
         }
 
-        .team-tab-container {
+        .team-tab-container,
+        .contacts-tab-container {
             display: none;
             flex-direction: column;
             flex: 1;
         }
 
-        .team-tab-container.active {
+        .team-tab-container.active,
+        .contacts-tab-container.active {
             display: flex;
         }
 
@@ -1045,7 +1047,8 @@
             margin-bottom: 1rem;
         }
 
-        .team-form-grid input {
+        .team-form-grid input,
+        .team-form-grid select {
             width: 100%;
             background: var(--bg-primary);
             border: 1px solid var(--border);
@@ -1264,6 +1267,9 @@
                 <div class="subnav-tab" data-tab="team" onclick="switchProjectTab('team')">
                     <span>👥</span> Team
                 </div>
+                <div class="subnav-tab" data-tab="contacts" onclick="switchProjectTab('contacts')">
+                    <span>📇</span> Kontakte
+                </div>
             </div>
 
             <!-- Board Tab -->
@@ -1356,6 +1362,53 @@
                         <tbody id="teamTableBody">
                             <tr>
                                 <td colspan="6" style="color: var(--text-secondary);">Keine Teammitglieder vorhanden.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <!-- Contacts Tab -->
+            <div class="contacts-tab-container" id="contactsTabContainer">
+                <div class="team-content-wrapper">
+                    <div class="team-form-grid">
+                        <input type="text" id="contactNameInput" placeholder="Name">
+                        <select id="contactRoleInput">
+                            <option value="">Rolle wählen</option>
+                            <option value="Elektroplaner">Elektroplaner</option>
+                            <option value="Bauherr">Bauherr</option>
+                            <option value="Bauleiter">Bauleiter</option>
+                            <option value="Bauherrenvertretung">Bauherrenvertretung</option>
+                            <option value="Intern">Intern</option>
+                            <option value="Dritt Gewerke">Dritt Gewerke</option>
+                        </select>
+                        <input type="email" id="contactEmailInput" placeholder="Email">
+                        <input type="text" id="contactPhoneInput" placeholder="Telefon">
+                        <select id="contactPriorityInput">
+                            <option value="Wichtig">Wichtig</option>
+                            <option value="Normal" selected>Normal</option>
+                            <option value="Unwichtig">Unwichtig</option>
+                        </select>
+                    </div>
+                    <div class="team-form-actions">
+                        <button class="btn" id="contactSaveBtn" onclick="saveContact()">➕ Hinzufügen</button>
+                        <button class="btn" id="contactCancelBtn" onclick="cancelContactEdit()" style="display: none; background: var(--bg-tertiary); border: 1px solid var(--border);">Abbrechen</button>
+                    </div>
+                    <table class="team-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Rolle</th>
+                                <th>Email</th>
+                                <th>Telefon</th>
+                                <th>Person</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contactsTableBody">
+                            <tr>
+                                <td colspan="6" style="color: var(--text-secondary);">Keine Kontakte vorhanden.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -2150,6 +2203,7 @@
         let originalFileContent = '';
         let hasUnsavedChanges = false;
         let activeTeamMemberId = null;
+        let activeContactId = null;
 
         function switchProjectTab(tab) {
             activeProjectTab = tab;
@@ -2164,6 +2218,7 @@
             document.getElementById('fileBrowserContainer').classList.toggle('active', tab === 'files');
             document.getElementById('contextTabContainer').classList.toggle('active', tab === 'context');
             document.getElementById('teamTabContainer').classList.toggle('active', tab === 'team');
+            document.getElementById('contactsTabContainer').classList.toggle('active', tab === 'contacts');
             
             // Load file tree when switching to files tab
             if (tab === 'files' && activeProjectId) {
@@ -2172,6 +2227,10 @@
 
             if (tab === 'team' && activeProjectId) {
                 loadTeam();
+            }
+
+            if (tab === 'contacts' && activeProjectId) {
+                loadContacts();
             }
         }
 
@@ -2317,6 +2376,150 @@
             document.getElementById('teamRegieInput').value = '';
             document.getElementById('teamSaveBtn').textContent = '➕ Hinzufügen';
             document.getElementById('teamCancelBtn').style.display = 'none';
+        }
+
+        async function loadContacts() {
+            if (!activeProjectId) return;
+
+            const tableBody = document.getElementById('contactsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" style="color: var(--text-secondary);">Kontakte werden geladen...</td></tr>';
+
+            try {
+                const response = await fetch(`/api/projects/${activeProjectId}/contacts`);
+                const data = await response.json();
+                const contacts = data.contacts || [];
+
+                if (contacts.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="color: var(--text-secondary);">Keine Kontakte vorhanden.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = contacts.map(contact => `
+                    <tr>
+                        <td>${contact.name || ''}</td>
+                        <td>${contact.role || ''}</td>
+                        <td>${contact.email || ''}</td>
+                        <td>${contact.phone || ''}</td>
+                        <td>${contact.priority || ''}</td>
+                        <td>
+                            <div class="team-table-actions">
+                                <button class="editor-btn" onclick="editContact('${contact.id}')" style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary);">✏️</button>
+                                <button class="editor-btn" onclick="deleteContact('${contact.id}')" style="background: #422; border: 1px solid #733; color: #f99;">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading contacts:', error);
+                tableBody.innerHTML = '<tr><td colspan="6" style="color: #f99;">Fehler beim Laden der Kontakte.</td></tr>';
+            }
+        }
+
+        async function saveContact() {
+            if (!activeProjectId) return;
+
+            const payload = {
+                name: document.getElementById('contactNameInput').value.trim(),
+                role: document.getElementById('contactRoleInput').value,
+                email: document.getElementById('contactEmailInput').value.trim(),
+                phone: document.getElementById('contactPhoneInput').value.trim(),
+                priority: document.getElementById('contactPriorityInput').value
+            };
+
+            if (!payload.name || !payload.role) {
+                alert('Bitte mindestens Name und Rolle ausfüllen.');
+                return;
+            }
+
+            try {
+                const url = activeContactId
+                    ? `/api/projects/${activeProjectId}/contacts/${activeContactId}`
+                    : `/api/projects/${activeProjectId}/contacts`;
+                const method = activeContactId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Could not save contact');
+                }
+
+                resetContactForm();
+                loadContacts();
+            } catch (error) {
+                console.error('Error saving contact:', error);
+                alert('Kontakt konnte nicht gespeichert werden.');
+            }
+        }
+
+        async function editContact(contactId) {
+            if (!activeProjectId) return;
+
+            try {
+                const response = await fetch(`/api/projects/${activeProjectId}/contacts`);
+                const data = await response.json();
+                const contact = (data.contacts || []).find(item => item.id === contactId);
+
+                if (!contact) {
+                    return;
+                }
+
+                activeContactId = contact.id;
+                document.getElementById('contactNameInput').value = contact.name || '';
+                document.getElementById('contactRoleInput').value = contact.role || '';
+                document.getElementById('contactEmailInput').value = contact.email || '';
+                document.getElementById('contactPhoneInput').value = contact.phone || '';
+                document.getElementById('contactPriorityInput').value = contact.priority || 'Normal';
+
+                document.getElementById('contactSaveBtn').textContent = '💾 Speichern';
+                document.getElementById('contactCancelBtn').style.display = 'inline-flex';
+            } catch (error) {
+                console.error('Error loading contact:', error);
+            }
+        }
+
+        async function deleteContact(contactId) {
+            if (!activeProjectId) return;
+
+            const confirmed = confirm('Kontakt wirklich löschen?');
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch(`/api/projects/${activeProjectId}/contacts/${contactId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Could not delete contact');
+                }
+
+                if (activeContactId === contactId) {
+                    resetContactForm();
+                }
+
+                loadContacts();
+            } catch (error) {
+                console.error('Error deleting contact:', error);
+                alert('Kontakt konnte nicht gelöscht werden.');
+            }
+        }
+
+        function cancelContactEdit() {
+            resetContactForm();
+        }
+
+        function resetContactForm() {
+            activeContactId = null;
+            document.getElementById('contactNameInput').value = '';
+            document.getElementById('contactRoleInput').value = '';
+            document.getElementById('contactEmailInput').value = '';
+            document.getElementById('contactPhoneInput').value = '';
+            document.getElementById('contactPriorityInput').value = 'Normal';
+            document.getElementById('contactSaveBtn').textContent = '➕ Hinzufügen';
+            document.getElementById('contactCancelBtn').style.display = 'none';
         }
 
         // ==========================================
