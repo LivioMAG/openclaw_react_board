@@ -706,11 +706,10 @@ app.get('/api/projects/:id/files', (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
 // GET file content
 app.get('/api/projects/:id/files/*', (req, res) => {
     const { id } = req.params;
-    const filePath = req.params[0]; // Everything after /files/
+    const filePath = req.params[0]; 
     
     const data = readData();
     const project = data.projects.find(p => p.id === id);
@@ -725,7 +724,6 @@ app.get('/api/projects/:id/files/*', (req, res) => {
 
     const fullPath = path.join(project.projectPath, filePath);
     
-    // Security: Ensure the path is within the project directory
     const normalizedProject = path.resolve(project.projectPath);
     const normalizedFile = path.resolve(fullPath);
     
@@ -739,18 +737,24 @@ app.get('/api/projects/:id/files/*', (req, res) => {
 
     try {
         const stats = fs.statSync(fullPath);
-        
         if (stats.isDirectory()) {
             return res.status(400).json({ error: 'Path is a directory' });
         }
-        
-        // Check file size (limit to 1MB for text files)
+
+        const ext = path.extname(filePath).toLowerCase();
+
+        // --- NEU: Spezialbehandlung für Binärdateien (PDF & Bilder) ---
+        if (['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'].includes(ext)) {
+            // Schickt die Datei direkt als Stream, damit der Browser sie rendern kann
+            return res.sendFile(fullPath);
+        }
+
+        // --- Bestehende Logik für Textdateien ---
         if (stats.size > 1024 * 1024) {
             return res.status(413).json({ error: 'File too large (max 1MB)' });
         }
         
         const content = fs.readFileSync(fullPath, 'utf8');
-        const ext = path.extname(filePath).toLowerCase();
         
         res.json({
             path: filePath,
@@ -765,6 +769,7 @@ app.get('/api/projects/:id/files/*', (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+   
 
 // PUT save file content
 app.put('/api/projects/:id/files/*', (req, res) => {
