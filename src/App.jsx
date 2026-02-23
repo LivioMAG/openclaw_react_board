@@ -40,6 +40,7 @@ function App() {
         projects={projects}
         activeProjectId={activeProjectId}
         setActiveProjectId={setActiveProjectId}
+        fetchProjects={fetchProjects}
       />
       
       <main className="main-content">

@@ -2,9 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import './Sidebar.css'
 
-function Sidebar({ projects, activeProjectId, setActiveProjectId }) {
+function Sidebar({ projects, activeProjectId, setActiveProjectId, fetchProjects }) {
   const [agentStatus, setAgentStatus] = useState({ status: 'available', text: 'Verfügbar' })
   const [projectsExpanded, setProjectsExpanded] = useState(false)
+  const [showCreateProjectModal, setShowCreateProjectModal] = useState(false)
+  const [newProjectName, setNewProjectName] = useState('')
+  const [newProjectDescription, setNewProjectDescription] = useState('')
+  const [newProjectPath, setNewProjectPath] = useState('/workspace/')
+  const [isCreatingProject, setIsCreatingProject] = useState(false)
+  const [createProjectError, setCreateProjectError] = useState('')
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -28,6 +34,67 @@ function Sidebar({ projects, activeProjectId, setActiveProjectId }) {
     setActiveProjectId(projectId)
     localStorage.setItem('lastProjectId', projectId)
     navigate(`/projects/${projectId}`)
+  }
+
+
+
+  const resetCreateProjectForm = () => {
+    setNewProjectName('')
+    setNewProjectDescription('')
+    setNewProjectPath('/workspace/')
+    setCreateProjectError('')
+  }
+
+  const handleOpenCreateProjectModal = () => {
+    resetCreateProjectForm()
+    setShowCreateProjectModal(true)
+  }
+
+  const handleCloseCreateProjectModal = () => {
+    setShowCreateProjectModal(false)
+    setIsCreatingProject(false)
+    setCreateProjectError('')
+  }
+
+  const handleCreateProject = async (event) => {
+    event.preventDefault()
+
+    if (!newProjectName.trim()) {
+      setCreateProjectError('Bitte einen Projektnamen eingeben.')
+      return
+    }
+
+    setIsCreatingProject(true)
+    setCreateProjectError('')
+
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newProjectName.trim(),
+          description: newProjectDescription.trim(),
+          projectPath: newProjectPath.trim()
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setCreateProjectError(data.error || 'Projekt konnte nicht erstellt werden.')
+        return
+      }
+
+      await fetchProjects()
+      setProjectsExpanded(true)
+      handleProjectClick(data.id)
+      handleCloseCreateProjectModal()
+    } catch (error) {
+      console.error('Error creating project:', error)
+      setCreateProjectError('Projekt konnte nicht erstellt werden.')
+    } finally {
+      setIsCreatingProject(false)
+    }
   }
 
   const isActiveTab = (path) => {
@@ -74,7 +141,7 @@ function Sidebar({ projects, activeProjectId, setActiveProjectId }) {
                 </div>
               ))}
             </div>
-            <button className="add-project-btn">
+            <button className="add-project-btn" onClick={handleOpenCreateProjectModal}>
               + Neues Projekt
             </button>
           </div>
@@ -90,6 +157,60 @@ function Sidebar({ projects, activeProjectId, setActiveProjectId }) {
           <span className="nav-label">Context-Speicher</span>
         </Link>
       </nav>
+
+
+      {showCreateProjectModal && (
+        <div className="create-project-modal-overlay" onClick={handleCloseCreateProjectModal}>
+          <div className="create-project-modal" onClick={event => event.stopPropagation()}>
+            <h3>Neues Projekt</h3>
+            <form onSubmit={handleCreateProject}>
+              <label>
+                Name
+                <input
+                  type="text"
+                  value={newProjectName}
+                  onChange={event => setNewProjectName(event.target.value)}
+                  placeholder="Projektname"
+                />
+              </label>
+
+              <label>
+                Beschreibung
+                <textarea
+                  value={newProjectDescription}
+                  onChange={event => setNewProjectDescription(event.target.value)}
+                  placeholder="Kurze Beschreibung"
+                  rows={3}
+                />
+              </label>
+
+              <label>
+                Projektpfad
+                <input
+                  type="text"
+                  value={newProjectPath}
+                  onChange={event => setNewProjectPath(event.target.value)}
+                  placeholder="/workspace/"
+                />
+              </label>
+
+              {createProjectError && (
+                <p className="create-project-error">⚠️ {createProjectError}</p>
+              )}
+
+              <div className="create-project-actions">
+                <button type="button" onClick={handleCloseCreateProjectModal} disabled={isCreatingProject}>
+                  Abbrechen
+                </button>
+                <button type="submit" disabled={isCreatingProject}>
+                  {isCreatingProject ? 'Erstelle…' : 'Erstellen'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </aside>
   )
 }
