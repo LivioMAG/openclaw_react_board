@@ -309,6 +309,28 @@
             font-size: 0.9rem;
         }
 
+        .project-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .project-delete-btn {
+            padding: 0.45rem 0.9rem;
+            border-radius: 6px;
+            border: 1px solid var(--danger);
+            background: transparent;
+            color: var(--danger);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .project-delete-btn:hover {
+            background: rgba(248, 81, 73, 0.12);
+        }
+
         .status-indicator {
             display: flex;
             align-items: center;
@@ -1148,6 +1170,11 @@
                     <h1 id="projectTitle">Projekt auswählen</h1>
                     <p id="projectDesc"></p>
                 </div>
+                <div class="project-header-actions">
+                    <button class="project-delete-btn" id="deleteProjectBtn" onclick="deleteActiveProject()" style="display: none;">
+                        🗑️ Projekt löschen
+                    </button>
+                </div>
             </div>
 
             <!-- Sub-Navigation Tabs -->
@@ -1388,6 +1415,7 @@
                 document.getElementById('projectTitle').textContent = project.name;
                 document.getElementById('projectDesc').textContent = project.description;
                 document.getElementById('docsContent').innerHTML = marked.parse(project.docs || '# ' + project.name);
+                document.getElementById('deleteProjectBtn').style.display = 'inline-flex';
                 updateStatusIndicator(project);
             }
 
@@ -1408,6 +1436,55 @@
 
             renderProjectsList();
             renderBoard();
+        }
+
+        async function deleteActiveProject() {
+            if (!activeProjectId) {
+                return;
+            }
+
+            try {
+                const projects = await fetchProjects();
+                const currentProject = projects.find(p => p.id === activeProjectId);
+
+                if (!currentProject) {
+                    return;
+                }
+
+                const confirmed = confirm(`Projekt wirklich löschen?\n\n${currentProject.name}\n(${currentProject.id})`);
+                if (!confirmed) {
+                    return;
+                }
+
+                const response = await fetch(`/api/projects/${activeProjectId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Delete request failed');
+                }
+
+                const remainingProjects = projects.filter(p => p.id !== activeProjectId);
+                activeProjectId = null;
+                localStorage.removeItem('lastProjectId');
+
+                if (remainingProjects.length > 0) {
+                    await renderProjectsList();
+                    await selectProject(remainingProjects[0].id);
+                    return;
+                }
+
+                document.getElementById('projectTitle').textContent = 'Projekt auswählen';
+                document.getElementById('projectDesc').textContent = '';
+                document.getElementById('docsContent').innerHTML = '<p>Projekt auswählen um Dokumentation zu sehen</p>';
+                document.getElementById('board').innerHTML = '<p style="color: var(--text-secondary);">No project selected</p>';
+                document.getElementById('deleteProjectBtn').style.display = 'none';
+
+                await renderProjectsList();
+            } catch (error) {
+                console.error('Error deleting project:', error);
+                alert('Projekt konnte nicht gelöscht werden');
+            }
         }
 
         function updateStatusIndicator(project) {
