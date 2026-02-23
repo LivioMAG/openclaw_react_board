@@ -12,18 +12,44 @@ app.use(express.static(__dirname));
 
 const dataFile = path.join(__dirname, 'tasks.json');
 const agentStatusFile = path.join(__dirname, 'agent-status.json');
+const DEFAULT_KANBAN = {
+    id: 'kanban-main',
+    name: 'Meine Tasks',
+    description: '',
+    docs: '# Meine Tasks',
+    color: '#3b82f6',
+    projectPath: '',
+    tasks: [],
+    createdAt: new Date().toISOString()
+};
+
+function ensureSingleKanban(data = {}) {
+    const projects = Array.isArray(data.projects) ? data.projects : [];
+    const existingKanban = projects[0] || {};
+
+    return {
+        ...data,
+        projects: [{
+            ...DEFAULT_KANBAN,
+            ...existingKanban,
+            id: DEFAULT_KANBAN.id,
+            name: DEFAULT_KANBAN.name,
+            tasks: Array.isArray(existingKanban.tasks) ? existingKanban.tasks : []
+        }]
+    };
+}
 
 function readData() {
     try {
         const data = fs.readFileSync(dataFile, 'utf8');
-        return JSON.parse(data);
+        return ensureSingleKanban(JSON.parse(data));
     } catch (error) {
-        return { projects: [] };
+        return ensureSingleKanban({ projects: [] });
     }
 }
 
 function writeData(data) {
-    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
+    fs.writeFileSync(dataFile, JSON.stringify(ensureSingleKanban(data), null, 2), 'utf8');
 }
 
 // GET all projects
@@ -34,29 +60,7 @@ app.get('/api/projects', (req, res) => {
 
 // POST new project
 app.post('/api/projects', (req, res) => {
-    const { name, description, docs, projectPath } = req.body;
-
-    if (!name) {
-        return res.status(400).json({ error: 'Project name required' });
-    }
-
-    const data = readData();
-    const newProject = {
-        id: `proj-${uuidv4().slice(0, 8)}`,
-        name,
-        description: description || '',
-        docs: docs || '# ' + name,
-        color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-        projectPath: typeof projectPath === 'string' ? projectPath.trim() : '',
-        tasks: [],
-        createdAt: new Date().toISOString()
-    };
-
-    data.projects.push(newProject);
-    writeData(data);
-
-    console.log(`[PROJECT] Created: "${name}" (${newProject.id})`);
-    res.status(201).json(newProject);
+    res.status(403).json({ error: 'Es gibt nur ein Kanban. Neue Projekte sind deaktiviert.' });
 });
 
 // PUT update project
@@ -79,19 +83,7 @@ app.put('/api/projects/:id', (req, res) => {
 
 // DELETE project
 app.delete('/api/projects/:id', (req, res) => {
-    const { id } = req.params;
-    const data = readData();
-    const projectIndex = data.projects.findIndex(p => p.id === id);
-
-    if (projectIndex === -1) {
-        return res.status(404).json({ error: 'Project not found' });
-    }
-
-    const removedProject = data.projects.splice(projectIndex, 1)[0];
-    writeData(data);
-
-    console.log(`[PROJECT] Deleted: "${removedProject.name}"`);
-    res.json({ success: true });
+    res.status(403).json({ error: 'Das einzige Kanban kann nicht gelöscht werden.' });
 });
 
 // POST new task to project

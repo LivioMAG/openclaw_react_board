@@ -1,15 +1,13 @@
 {
   "projects": [
     {
-      "id": "proj-dok-001",
-      "name": "Demo",
-      "description": "Baustellendokumentation & Ablage",
-      "docs": "# Dokumentation\nBaustellendokumentation & Ablage",
+      "id": "kanban-main",
+      "name": "Meine Tasks",
+      "description": "",
+      "docs": "# Meine Tasks",
       "color": "#3b82f6",
-      "projectPath": "",
       "tasks": [],
       "createdAt": "2026-02-23T10:00:00.000Z"
-    },
-
+    }
   ]
 }
