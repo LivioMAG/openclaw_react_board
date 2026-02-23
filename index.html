@@ -428,9 +428,42 @@
             transition: all 0.15s ease;
         }
 
+        .task.dragging {
+            opacity: 0.6;
+            cursor: grabbing;
+        }
+
         .task:hover {
             border-color: var(--accent);
             background: var(--bg-primary);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .task-delete-btn {
+            background: transparent;
+            border: 1px solid #733;
+            color: #f99;
+            border-radius: 4px;
+            padding: 0.1rem 0.35rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .task-delete-btn:hover {
+            background: #422;
+        }
+
+        .tasks-list.drag-over {
+            outline: 2px dashed var(--accent);
+            outline-offset: 4px;
+            border-radius: 6px;
         }
 
         .task-title {
@@ -1521,6 +1554,7 @@
         ];
 
         let activeProjectId = localStorage.getItem('lastProjectId') || null;
+        let draggedTaskId = null;
 
         async function fetchProjects() {
             try {
@@ -1676,8 +1710,11 @@
                 columnEl.className = 'column';
 
                 let tasksHtml = columnTasks.map(task => `
-                    <div class="task" onclick="openTaskModal('${task.id}')" ${task.featureFile ? 'data-feature="true"' : ''}>
-                        <div class="task-title">${task.title}</div>
+                    <div class="task" draggable="true" data-task-id="${task.id}" onclick="openTaskModal('${task.id}')" ${task.featureFile ? 'data-feature="true"' : ''}>
+                        <div class="task-header">
+                            <div class="task-title">${task.title}</div>
+                            <button class="task-delete-btn" onclick="event.stopPropagation(); deleteTask('${task.id}')" title="Aufgabe löschen">🗑️</button>
+                        </div>
                         ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
                         <div class="task-meta">
                             ${task.priority ? `<span class="task-priority priority-${task.priority}">${task.priority}</span>` : ''}
@@ -1714,6 +1751,109 @@
                     }
                 });
             });
+
+            setupDragAndDrop();
+        }
+
+        function setupDragAndDrop() {
+            const tasks = document.querySelectorAll('.task[data-task-id]');
+            const taskLists = document.querySelectorAll('.tasks-list');
+
+            tasks.forEach(taskEl => {
+                taskEl.addEventListener('dragstart', (e) => {
+                    draggedTaskId = taskEl.dataset.taskId;
+                    taskEl.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', draggedTaskId || '');
+                });
+
+                taskEl.addEventListener('dragend', () => {
+                    taskEl.classList.remove('dragging');
+                    taskLists.forEach(list => list.classList.remove('drag-over'));
+                });
+            });
+
+            taskLists.forEach(taskListEl => {
+                const columnEl = taskListEl.closest('.column');
+                const targetColumn = columnEl?.querySelector('.task-input')?.dataset.column;
+
+                taskListEl.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    taskListEl.classList.add('drag-over');
+                });
+
+                taskListEl.addEventListener('dragleave', () => {
+                    taskListEl.classList.remove('drag-over');
+                });
+
+                taskListEl.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    taskListEl.classList.remove('drag-over');
+
+                    const taskId = draggedTaskId || e.dataTransfer.getData('text/plain');
+                    if (!taskId || !targetColumn) {
+                        return;
+                    }
+
+                    await moveTask(taskId, targetColumn);
+                });
+            });
+        }
+
+        async function moveTask(taskId, targetColumn) {
+            try {
+                const projects = await fetchProjects();
+                const project = projects.find(p => p.id === activeProjectId);
+                const task = project?.tasks?.find(t => t.id === taskId);
+
+                if (!task || task.status === targetColumn) {
+                    return;
+                }
+
+                const response = await fetch(`/api/projects/${activeProjectId}/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: targetColumn })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Task move failed');
+                }
+
+                await renderBoard();
+            } catch (error) {
+                console.error('Error moving task:', error);
+                alert('Aufgabe konnte nicht verschoben werden');
+            } finally {
+                draggedTaskId = null;
+            }
+        }
+
+        async function deleteTask(taskId) {
+            const projects = await fetchProjects();
+            const project = projects.find(p => p.id === activeProjectId);
+            const task = project?.tasks?.find(t => t.id === taskId);
+            const taskTitle = task?.title || taskId;
+
+            const confirmed = confirm(`Aufgabe wirklich löschen?\n\n${taskTitle}`);
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/projects/${activeProjectId}/tasks/${taskId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Task delete failed');
+                }
+
+                await renderBoard();
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                alert('Aufgabe konnte nicht gelöscht werden');
+            }
         }
 
         async function addTask(columnId, title) {
