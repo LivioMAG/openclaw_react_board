@@ -1019,6 +1019,79 @@
             display: flex;
         }
 
+        .team-tab-container {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .team-tab-container.active {
+            display: flex;
+        }
+
+        .team-content-wrapper {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            overflow: auto;
+        }
+
+        .team-form-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .team-form-grid input {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            padding: 0.5rem 0.65rem;
+            font-size: 0.85rem;
+        }
+
+        .team-form-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .team-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        .team-table th,
+        .team-table td {
+            border-bottom: 1px solid var(--border);
+            padding: 0.65rem;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .team-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            background: var(--bg-tertiary);
+        }
+
+        .team-table-actions {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        @media (max-width: 1100px) {
+            .team-form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
         .context-content-wrapper {
             flex: 1;
             background: var(--bg-secondary);
@@ -1188,6 +1261,9 @@
                 <div class="subnav-tab" data-tab="context" onclick="switchProjectTab('context')">
                     <span>📚</span> Context
                 </div>
+                <div class="subnav-tab" data-tab="team" onclick="switchProjectTab('team')">
+                    <span>👥</span> Team
+                </div>
             </div>
 
             <!-- Board Tab -->
@@ -1249,6 +1325,40 @@
                     <div class="docs-content" id="docsContent">
                         <p>Projekt auswählen um Dokumentation zu sehen</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Team Tab -->
+            <div class="team-tab-container" id="teamTabContainer">
+                <div class="team-content-wrapper">
+                    <div class="team-form-grid">
+                        <input type="text" id="teamNameInput" placeholder="Team Person">
+                        <input type="text" id="teamRolleInput" placeholder="Rolle">
+                        <input type="number" id="teamRapportInput" placeholder="Rapport-Nr">
+                        <input type="text" id="teamSollerlosInput" placeholder="Söllerlös in CHF">
+                        <input type="text" id="teamRegieInput" placeholder="Regieansatz in CHF">
+                    </div>
+                    <div class="team-form-actions">
+                        <button class="btn" id="teamSaveBtn" onclick="saveTeamMember()">➕ Hinzufügen</button>
+                        <button class="btn" id="teamCancelBtn" onclick="cancelTeamEdit()" style="display: none; background: var(--bg-tertiary); border: 1px solid var(--border);">Abbrechen</button>
+                    </div>
+                    <table class="team-table">
+                        <thead>
+                            <tr>
+                                <th>Team Person</th>
+                                <th>Rolle</th>
+                                <th>Rapport-Nr</th>
+                                <th>Söllerlös in CHF</th>
+                                <th>Regieansatz in CHF</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teamTableBody">
+                            <tr>
+                                <td colspan="6" style="color: var(--text-secondary);">Keine Teammitglieder vorhanden.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -1432,6 +1542,10 @@
             // Load file tree if on files tab
             if (activeProjectTab === 'files') {
                 loadFileTree();
+            }
+
+            if (activeProjectTab === 'team') {
+                loadTeam();
             }
 
             renderProjectsList();
@@ -2035,6 +2149,7 @@
         let currentFilePath = null;
         let originalFileContent = '';
         let hasUnsavedChanges = false;
+        let activeTeamMemberId = null;
 
         function switchProjectTab(tab) {
             activeProjectTab = tab;
@@ -2048,11 +2163,160 @@
             document.getElementById('board').style.display = tab === 'board' ? 'grid' : 'none';
             document.getElementById('fileBrowserContainer').classList.toggle('active', tab === 'files');
             document.getElementById('contextTabContainer').classList.toggle('active', tab === 'context');
+            document.getElementById('teamTabContainer').classList.toggle('active', tab === 'team');
             
             // Load file tree when switching to files tab
             if (tab === 'files' && activeProjectId) {
                 loadFileTree();
             }
+
+            if (tab === 'team' && activeProjectId) {
+                loadTeam();
+            }
+        }
+
+        async function loadTeam() {
+            if (!activeProjectId) return;
+
+            const tableBody = document.getElementById('teamTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" style="color: var(--text-secondary);">Team wird geladen...</td></tr>';
+
+            try {
+                const response = await fetch(`/api/projects/${activeProjectId}/team`);
+                const data = await response.json();
+                const team = data.team || [];
+
+                if (team.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="color: var(--text-secondary);">Keine Teammitglieder vorhanden.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = team.map(member => `
+                    <tr>
+                        <td>${member.name || ''}</td>
+                        <td>${member.rolle || ''}</td>
+                        <td>${member['Rapport-Nr'] || ''}</td>
+                        <td>${member.Sollerlos || ''}</td>
+                        <td>${member.Regie || ''}</td>
+                        <td>
+                            <div class="team-table-actions">
+                                <button class="editor-btn" onclick="editTeamMember('${member.id}')" style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary);">✏️</button>
+                                <button class="editor-btn" onclick="deleteTeamMember('${member.id}')" style="background: #422; border: 1px solid #733; color: #f99;">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading team:', error);
+                tableBody.innerHTML = '<tr><td colspan="6" style="color: #f99;">Fehler beim Laden des Teams.</td></tr>';
+            }
+        }
+
+        async function saveTeamMember() {
+            if (!activeProjectId) return;
+
+            const payload = {
+                name: document.getElementById('teamNameInput').value.trim(),
+                rolle: document.getElementById('teamRolleInput').value.trim(),
+                'Rapport-Nr': document.getElementById('teamRapportInput').value.trim(),
+                Sollerlos: document.getElementById('teamSollerlosInput').value.trim(),
+                Regie: document.getElementById('teamRegieInput').value.trim()
+            };
+
+            if (!payload.name || !payload.rolle) {
+                alert('Bitte mindestens Team Person und Rolle ausfüllen.');
+                return;
+            }
+
+            try {
+                const url = activeTeamMemberId
+                    ? `/api/projects/${activeProjectId}/team/${activeTeamMemberId}`
+                    : `/api/projects/${activeProjectId}/team`;
+                const method = activeTeamMemberId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Could not save team member');
+                }
+
+                resetTeamForm();
+                loadTeam();
+            } catch (error) {
+                console.error('Error saving team member:', error);
+                alert('Teammitglied konnte nicht gespeichert werden.');
+            }
+        }
+
+        async function editTeamMember(memberId) {
+            if (!activeProjectId) return;
+
+            try {
+                const response = await fetch(`/api/projects/${activeProjectId}/team`);
+                const data = await response.json();
+                const member = (data.team || []).find(item => item.id === memberId);
+
+                if (!member) {
+                    return;
+                }
+
+                activeTeamMemberId = member.id;
+                document.getElementById('teamNameInput').value = member.name || '';
+                document.getElementById('teamRolleInput').value = member.rolle || '';
+                document.getElementById('teamRapportInput').value = member['Rapport-Nr'] || '';
+                document.getElementById('teamSollerlosInput').value = member.Sollerlos || '';
+                document.getElementById('teamRegieInput').value = member.Regie || '';
+
+                document.getElementById('teamSaveBtn').textContent = '💾 Speichern';
+                document.getElementById('teamCancelBtn').style.display = 'inline-flex';
+            } catch (error) {
+                console.error('Error loading team member:', error);
+            }
+        }
+
+        async function deleteTeamMember(memberId) {
+            if (!activeProjectId) return;
+
+            const confirmed = confirm('Teammitglied wirklich löschen?');
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch(`/api/projects/${activeProjectId}/team/${memberId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Could not delete team member');
+                }
+
+                if (activeTeamMemberId === memberId) {
+                    resetTeamForm();
+                }
+
+                loadTeam();
+            } catch (error) {
+                console.error('Error deleting team member:', error);
+                alert('Teammitglied konnte nicht gelöscht werden.');
+            }
+        }
+
+        function cancelTeamEdit() {
+            resetTeamForm();
+        }
+
+        function resetTeamForm() {
+            activeTeamMemberId = null;
+            document.getElementById('teamNameInput').value = '';
+            document.getElementById('teamRolleInput').value = '';
+            document.getElementById('teamRapportInput').value = '';
+            document.getElementById('teamSollerlosInput').value = '';
+            document.getElementById('teamRegieInput').value = '';
+            document.getElementById('teamSaveBtn').textContent = '➕ Hinzufügen';
+            document.getElementById('teamCancelBtn').style.display = 'none';
         }
 
         // ==========================================

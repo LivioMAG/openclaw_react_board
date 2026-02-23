@@ -20,6 +20,14 @@ const DEFAULT_KANBAN = {
     color: '#3b82f6',
     projectPath: '',
     tasks: [],
+    team: [{
+        id: 'team-default-1',
+        name: 'Livio Emmenegger',
+        rolle: 'Bauleiter',
+        'Rapport-Nr': 511112161,
+        Sollerlos: '85',
+        Regie: '114.0'
+    }],
     createdAt: new Date().toISOString()
 };
 
@@ -34,7 +42,8 @@ function ensureSingleKanban(data = {}) {
             ...existingKanban,
             id: DEFAULT_KANBAN.id,
             name: DEFAULT_KANBAN.name,
-            tasks: Array.isArray(existingKanban.tasks) ? existingKanban.tasks : []
+            tasks: Array.isArray(existingKanban.tasks) ? existingKanban.tasks : [],
+            team: Array.isArray(existingKanban.team) ? existingKanban.team : DEFAULT_KANBAN.team
         }]
     };
 }
@@ -169,6 +178,114 @@ app.delete('/api/projects/:projectId/tasks/:taskId', (req, res) => {
     writeData(data);
 
     console.log(`[TASK] Removed: "${removedTask.title}" from "${project.name}"`);
+    res.json({ success: true });
+});
+
+// GET Team members from project
+app.get('/api/projects/:projectId/team', (req, res) => {
+    const { projectId } = req.params;
+
+    const data = readData();
+    const project = data.projects.find(p => p.id === projectId);
+
+    if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json({ team: Array.isArray(project.team) ? project.team : [] });
+});
+
+// POST add Team member
+app.post('/api/projects/:projectId/team', (req, res) => {
+    const { projectId } = req.params;
+    const { name, rolle, 'Rapport-Nr': rapportNr, Sollerlos, Regie } = req.body;
+
+    if (!name || !rolle) {
+        return res.status(400).json({ error: 'Name und Rolle sind erforderlich.' });
+    }
+
+    const data = readData();
+    const project = data.projects.find(p => p.id === projectId);
+
+    if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (!Array.isArray(project.team)) {
+        project.team = [];
+    }
+
+    const newMember = {
+        id: uuidv4().slice(0, 8),
+        name,
+        rolle,
+        'Rapport-Nr': rapportNr || '',
+        Sollerlos: Sollerlos || '',
+        Regie: Regie || ''
+    };
+
+    project.team.push(newMember);
+    writeData(data);
+
+    res.status(201).json(newMember);
+});
+
+// PUT update Team member
+app.put('/api/projects/:projectId/team/:memberId', (req, res) => {
+    const { projectId, memberId } = req.params;
+    const updates = req.body;
+
+    const data = readData();
+    const project = data.projects.find(p => p.id === projectId);
+
+    if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (!Array.isArray(project.team)) {
+        project.team = [];
+    }
+
+    const memberIndex = project.team.findIndex(member => member.id === memberId);
+
+    if (memberIndex === -1) {
+        return res.status(404).json({ error: 'Team member not found' });
+    }
+
+    project.team[memberIndex] = {
+        ...project.team[memberIndex],
+        ...updates,
+        id: project.team[memberIndex].id
+    };
+
+    writeData(data);
+    res.json(project.team[memberIndex]);
+});
+
+// DELETE Team member
+app.delete('/api/projects/:projectId/team/:memberId', (req, res) => {
+    const { projectId, memberId } = req.params;
+
+    const data = readData();
+    const project = data.projects.find(p => p.id === projectId);
+
+    if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (!Array.isArray(project.team)) {
+        project.team = [];
+    }
+
+    const memberIndex = project.team.findIndex(member => member.id === memberId);
+
+    if (memberIndex === -1) {
+        return res.status(404).json({ error: 'Team member not found' });
+    }
+
+    project.team.splice(memberIndex, 1);
+    writeData(data);
+
     res.json({ success: true });
 });
 
