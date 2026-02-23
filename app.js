@@ -34,7 +34,7 @@ app.get('/api/projects', (req, res) => {
 
 // POST new project
 app.post('/api/projects', (req, res) => {
-    const { name, description, docs } = req.body;
+    const { name, description, docs, projectPath } = req.body;
 
     if (!name) {
         return res.status(400).json({ error: 'Project name required' });
@@ -47,6 +47,7 @@ app.post('/api/projects', (req, res) => {
         description: description || '',
         docs: docs || '# ' + name,
         color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+        projectPath: typeof projectPath === 'string' ? projectPath.trim() : '',
         tasks: [],
         createdAt: new Date().toISOString()
     };

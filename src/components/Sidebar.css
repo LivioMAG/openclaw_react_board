@@ -155,3 +155,83 @@
   border-color: var(--accent);
   color: var(--accent);
 }
+.create-project-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 1rem;
+}
+
+.create-project-modal {
+  width: min(520px, 100%);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.35);
+}
+
+.create-project-modal h3 {
+  margin-bottom: 0.9rem;
+}
+
+.create-project-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.create-project-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.create-project-modal input,
+.create-project-modal textarea {
+  width: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+.create-project-modal input:focus,
+.create-project-modal textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.create-project-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.create-project-actions button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.create-project-actions button[type='submit'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.create-project-error {
+  color: #f59e0b;
+  font-size: 0.85rem;
+}
