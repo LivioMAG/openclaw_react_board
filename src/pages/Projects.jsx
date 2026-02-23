@@ -10,6 +10,7 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
   const [projectFiles, setProjectFiles] = useState([])
   const [filesLoading, setFilesLoading] = useState(false)
   const [filesError, setFilesError] = useState('')
+  const [deletingFilePath, setDeletingFilePath] = useState('')
 
   useEffect(() => {
     if (projectId && projectId !== activeProjectId) {
@@ -22,33 +23,37 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
     setProject(currentProject)
   }, [activeProjectId, projects])
 
-  useEffect(() => {
-    if (!project || activeTab !== 'files') {
+  const fetchProjectFiles = async () => {
+    if (!project) {
       return
     }
 
-    const fetchProjectFiles = async () => {
-      setFilesLoading(true)
-      setFilesError('')
+    setFilesLoading(true)
+    setFilesError('')
 
-      try {
-        const response = await fetch(`/api/projects/${project.id}/files`)
-        const data = await response.json()
+    try {
+      const response = await fetch(`/api/projects/${project.id}/files`)
+      const data = await response.json()
 
-        if (!response.ok) {
-          setProjectFiles([])
-          setFilesError(data.error || 'Dateiliste konnte nicht geladen werden.')
-          return
-        }
-
-        setProjectFiles(data.tree || [])
-      } catch (error) {
-        console.error('Error loading project files:', error)
+      if (!response.ok) {
         setProjectFiles([])
-        setFilesError('Dateiliste konnte nicht geladen werden.')
-      } finally {
-        setFilesLoading(false)
+        setFilesError(data.error || 'Dateiliste konnte nicht geladen werden.')
+        return
       }
+
+      setProjectFiles(data.tree || [])
+    } catch (error) {
+      console.error('Error loading project files:', error)
+      setProjectFiles([])
+      setFilesError('Dateiliste konnte nicht geladen werden.')
+    } finally {
+      setFilesLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!project || activeTab !== 'files') {
+      return
     }
 
     fetchProjectFiles()
@@ -74,6 +79,46 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
       .join('/')
 
     return `/api/projects/${project.id}/files/${encodedPath}`
+  }
+
+  const getFileApiPath = (filePath) => {
+    const encodedPath = filePath
+      .split('/')
+      .map(segment => encodeURIComponent(segment))
+      .join('/')
+
+    return `/api/projects/${project.id}/files/${encodedPath}`
+  }
+
+  const handleFileDelete = async (filePath) => {
+    if (!project) {
+      return
+    }
+
+    const confirmed = window.confirm(`Datei wirklich löschen?\n${filePath}`)
+    if (!confirmed) {
+      return
+    }
+
+    setDeletingFilePath(filePath)
+    setFilesError('')
+
+    try {
+      const response = await fetch(getFileApiPath(filePath), { method: 'DELETE' })
+      const data = await response.json()
+
+      if (!response.ok) {
+        setFilesError(data.error || 'Datei konnte nicht gelöscht werden.')
+        return
+      }
+
+      await fetchProjectFiles()
+    } catch (error) {
+      console.error('Error deleting file:', error)
+      setFilesError('Datei konnte nicht gelöscht werden.')
+    } finally {
+      setDeletingFilePath('')
+    }
   }
 
   const handleTaskAdd = async (columnId, title) => {
@@ -186,13 +231,22 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
                     <span className="files-item-name">{item.icon} {item.name}</span>
 
                     {!item.isDirectoryLabel && (
-                      <a
-                        className="download-link"
-                        href={getDownloadUrl(item.path)}
-                        download={item.name}
-                      >
-                        ⬇️ Download
-                      </a>
+                      <div className="file-actions">
+                        <a
+                          className="download-link"
+                          href={getDownloadUrl(item.path)}
+                          download={item.name}
+                        >
+                          ⬇️ Download
+                        </a>
+                        <button
+                          className="delete-file-button"
+                          onClick={() => handleFileDelete(item.path)}
+                          disabled={deletingFilePath === item.path}
+                        >
+                          {deletingFilePath === item.path ? '⏳ Lösche…' : '🗑️ Löschen'}
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))

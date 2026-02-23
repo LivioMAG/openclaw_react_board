@@ -825,6 +825,54 @@ app.put('/api/projects/:id/files/*', (req, res) => {
     }
 });
 
+// DELETE file
+app.delete('/api/projects/:id/files/*', (req, res) => {
+    const { id } = req.params;
+    const filePath = req.params[0];
+
+    const data = readData();
+    const project = data.projects.find(p => p.id === id);
+
+    if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (!project.projectPath) {
+        return res.status(400).json({ error: 'No project path configured' });
+    }
+
+    const fullPath = path.join(project.projectPath, filePath);
+
+    const normalizedProject = path.resolve(project.projectPath);
+    const normalizedFile = path.resolve(fullPath);
+
+    if (!normalizedFile.startsWith(normalizedProject)) {
+        return res.status(403).json({ error: 'Access denied: Path traversal detected' });
+    }
+
+    if (!fs.existsSync(fullPath)) {
+        return res.status(404).json({ error: 'File not found' });
+    }
+
+    try {
+        const stats = fs.statSync(fullPath);
+        if (stats.isDirectory()) {
+            return res.status(400).json({ error: 'Path is a directory' });
+        }
+
+        fs.unlinkSync(fullPath);
+        console.log(`[FILE] Deleted: ${filePath} in project "${project.name}"`);
+
+        res.json({
+            success: true,
+            path: filePath
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 // Start server
 app.listen(PORT, HOST, () => {
     console.log(`\n🦞 OpenClaw Board v2\n`);
