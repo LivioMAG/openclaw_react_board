@@ -22,10 +22,13 @@ function App() {
       const data = await response.json()
       setProjects(data.projects || data)
       
-      // Restore last active project
+      const fetchedProjects = data.projects || data || []
       const lastProjectId = localStorage.getItem('lastProjectId')
-      if (lastProjectId && data.projects?.some(p => p.id === lastProjectId)) {
+
+      if (lastProjectId && fetchedProjects.some(p => p.id === lastProjectId)) {
         setActiveProjectId(lastProjectId)
+      } else if (fetchedProjects.length > 0) {
+        setActiveProjectId(fetchedProjects[0].id)
       }
     } catch (error) {
       console.error('Error fetching projects:', error)
@@ -40,7 +43,6 @@ function App() {
         projects={projects}
         activeProjectId={activeProjectId}
         setActiveProjectId={setActiveProjectId}
-        fetchProjects={fetchProjects}
       />
       
       <main className="main-content">

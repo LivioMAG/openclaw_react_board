@@ -161,8 +161,8 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
     return (
       <div className="projects-page">
         <div className="no-project-selected">
-          <h2>Kein Projekt ausgewählt</h2>
-          <p>Wähle ein Projekt aus der Seitenleiste aus</p>
+          <h2>Kein Kanban ausgewählt</h2>
+          <p>Wähle das Kanban in der Seitenleiste aus</p>
         </div>
       </div>
     )
