@@ -2640,17 +2640,36 @@ async function openFile(filePath) {
     const previewableExtensions = ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'];
     if (previewableExtensions.includes(extension)) {
         saveBtn.style.display = 'none';
+        codeEditor = null;
         document.getElementById('editorFileIcon').textContent = extension === '.pdf' ? '📕' : '🖼️';
         document.getElementById('editorFileName').textContent = filePath.split('/').pop();
         document.getElementById('editorFilePath').textContent = filePath.replace(filePath.split('/').pop(), '');
 
+        // Vorherige Inhalte (z.B. CodeMirror/iframe/img) vollständig entfernen,
+        // damit bei einem Dateiwechsel die neue Vorschau sicher gerendert wird.
+        editorContent.innerHTML = '';
+
         if (extension === '.pdf') {
-            editorContent.innerHTML = `<iframe src="${previewUrl}" style="width:100%; height:100%; border:none; background:white;"></iframe>`;
+            const pdfFrame = document.createElement('iframe');
+            pdfFrame.style.cssText = 'width:100%; height:100%; border:none; background:white;';
+            pdfFrame.setAttribute('title', `PDF Vorschau: ${filePath}`);
+            editorContent.appendChild(pdfFrame);
+
+            // Explizit nach dem Einfügen setzen, damit Browser den Wechsel zuverlässig erkennt.
+            requestAnimationFrame(() => {
+                pdfFrame.src = previewUrl;
+            });
         } else {
-            editorContent.innerHTML = `
-                <div style="display:flex; justify-content:center; align-items:center; height:100%; background:#0b0e14; padding:20px;">
-                    <img src="${previewUrl}" alt="${filePath}" style="max-width:100%; max-height:100%; object-fit:contain;">
-                </div>`;
+            const imageWrapper = document.createElement('div');
+            imageWrapper.style.cssText = 'display:flex; justify-content:center; align-items:center; height:100%; background:#0b0e14; padding:20px;';
+
+            const img = document.createElement('img');
+            img.alt = filePath;
+            img.style.cssText = 'max-width:100%; max-height:100%; object-fit:contain;';
+            img.src = previewUrl;
+
+            imageWrapper.appendChild(img);
+            editorContent.appendChild(imageWrapper);
         }
 
         currentFilePath = filePath;
