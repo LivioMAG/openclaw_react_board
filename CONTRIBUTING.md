@@ -1,10 +1,10 @@
-# Contributing to Voltiy Board
+# Contributing to OpenClaw Board
 
-Danke für dein Interesse, zu diesem Projekt beizutragen! ⚡
+Danke für dein Interesse, zu diesem Projekt beizutragen! 🦞
 
 ## 🚀 Wie du beitragen kannst
 
-1. **Bugs melden** - Erstelle ein [Issue](https://github.com/AlexPEClub/voltiy_react_board/issues)
+1. **Bugs melden** - Erstelle ein [Issue](https://github.com/AlexPEClub/openclaw_react_board/issues)
 2. **Features vorschlagen** - Diskutiere neue Ideen in den Issues
 3. **Code beitragen** - Fork, entwickeln, Pull Request erstellen
 4. **Dokumentation** - Verbessere README, füge Beispiele hinzu
@@ -16,8 +16,8 @@ Danke für dein Interesse, zu diesem Projekt beizutragen! ⚡
 
 ```bash
 # Repository forken und klonen
-git clone https://github.com/AlexPEClub/voltiy_react_board.git
-cd voltiy_react_board
+git clone https://github.com/AlexPEClub/openclaw_react_board.git
+cd openclaw_react_board
 
 # Dependencies installieren
 npm install
@@ -84,4 +84,4 @@ Mit deinen Beiträgen stimmst du zu, dass diese unter der MIT-Lizenz veröffentl
 
 ---
 
-Fragen? Erstelle ein Issue oder kontaktiere uns im [Voltiy Discord](https://discord.com/invite/clawd)!
+Fragen? Erstelle ein Issue oder kontaktiere uns im [Clawdbot Discord](https://discord.com/invite/clawd)!

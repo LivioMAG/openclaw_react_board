@@ -480,7 +480,7 @@ app.post('/api/projects/:projectId/sync-features', (req, res) => {
 // Context Files API (Agent Configuration)
 // ==========================================
 
-const WORKSPACE_PATH = process.env.VOLTIY_WORKSPACE || '/data/.voltiy/workspace';
+const WORKSPACE_PATH = process.env.OPENCLAW_WORKSPACE || '/data/.openclaw/workspace';
 const CONTEXT_FILES = [
     { name: 'MEMORY.md', description: 'Langzeit-Gedächtnis & Notizen' },
     { name: 'AGENTS.md', description: 'Agent-Verhaltensregeln' },
@@ -827,7 +827,7 @@ app.put('/api/projects/:id/files/*', (req, res) => {
 
 // Start server
 app.listen(PORT, HOST, () => {
-    console.log(`\n⚡ Voltiy Board v2\n`);
+    console.log(`\n🦞 OpenClaw Board v2\n`);
     console.log(`   🌐 http://0.0.0.0:${PORT}`);
     console.log(`   📡 API: http://localhost:${PORT}/api/projects\n`);
 });

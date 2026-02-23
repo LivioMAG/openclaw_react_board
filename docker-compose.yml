@@ -3,7 +3,7 @@ version: '3.8'
 services:
   kanban:
     build: .
-    container_name: voltiy-kanban
+    container_name: openclaw-kanban
     ports:
       - "3000:3000"
     volumes:
