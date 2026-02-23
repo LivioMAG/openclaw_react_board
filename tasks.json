@@ -8,6 +8,16 @@
       "color": "#3b82f6",
       "projectPath": "",
       "tasks": [],
+      "team": [
+        {
+          "id": "team-default-1",
+          "name": "Livio Emmenegger",
+          "rolle": "Bauleiter",
+          "Rapport-Nr": 511112161,
+          "Sollerlos": "85",
+          "Regie": "114.0"
+        }
+      ],
       "createdAt": "2026-02-23T10:00:00.000Z"
     }
   ]
