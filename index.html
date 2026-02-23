@@ -2060,85 +2060,100 @@
             }
         }
 
-        async function openFile(filePath) {
-            // Check for unsaved changes
-            if (hasUnsavedChanges) {
-                if (!confirm('Ungespeicherte Änderungen verwerfen?')) {
-                    return;
-                }
-            }
-            
-            // Update active state in tree
-            document.querySelectorAll('.file-tree-item.file').forEach(item => {
-                item.classList.toggle('active', item.dataset.path === filePath);
-            });
-            
-            try {
-                const response = await fetch(`/api/projects/${activeProjectId}/files/${filePath}`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    alert('Fehler: ' + data.error);
-                    return;
-                }
-                
-                currentFilePath = filePath;
-                originalFileContent = data.content;
-                hasUnsavedChanges = false;
-                
-                // Show editor header
-                document.getElementById('editorHeader').style.display = 'flex';
-                document.getElementById('editorEmpty').style.display = 'none';
-                
-                // Update header info
-                document.getElementById('editorFileIcon').textContent = data.icon;
-                document.getElementById('editorFileName').textContent = data.name;
-                document.getElementById('editorFilePath').textContent = filePath.replace(data.name, '');
-                
-                // Initialize or update CodeMirror
-                const editorContent = document.getElementById('editorContent');
-                const mode = getCodeMirrorMode(data.extension);
-                
-                if (!codeEditor) {
-                    // Create editor container if not exists
-                    let editorEl = document.getElementById('codeMirrorEditor');
-                    if (!editorEl) {
-                        editorEl = document.createElement('div');
-                        editorEl.id = 'codeMirrorEditor';
-                        editorEl.style.height = '100%';
-                        editorContent.appendChild(editorEl);
-                    }
-                    
-                    codeEditor = CodeMirror(editorEl, {
-                        value: data.content,
-                        mode: mode,
-                        theme: 'material-darker',
-                        lineNumbers: true,
-                        lineWrapping: true,
-                        tabSize: 2,
-                        indentWithTabs: false,
-                        autoCloseBrackets: true,
-                        matchBrackets: true
-                    });
-                    
-                    codeEditor.on('change', () => {
-                        const changed = codeEditor.getValue() !== originalFileContent;
-                        hasUnsavedChanges = changed;
-                        updateSaveButton();
-                    });
-                } else {
-                    codeEditor.setValue(data.content);
-                    codeEditor.setOption('mode', mode);
-                }
-                
-                updateSaveButton();
-                codeEditor.refresh();
-                
-            } catch (error) {
-                console.error('Error opening file:', error);
-                alert('Fehler beim Öffnen der Datei');
-            }
+async function openFile(filePath) {
+    // 1. Check auf ungespeicherte Änderungen
+    if (hasUnsavedChanges && !confirm('Ungespeicherte Änderungen verwerfen?')) {
+        return;
+    }
+    
+    // 2. Aktiven Status im Dateibaum setzen
+    document.querySelectorAll('.file-tree-item.file').forEach(item => {
+        item.classList.toggle('active', item.dataset.path === filePath);
+    });
+    
+    // Hilfsvariablen
+    const extension = filePath.substring(filePath.lastIndexOf('.')).toLowerCase();
+    const fileUrl = `/api/projects/${activeProjectId}/files/${filePath}`;
+    const editorContent = document.getElementById('editorContent');
+    const saveBtn = document.getElementById('editorSaveBtn');
+    const downloadBtn = document.getElementById('editorDownloadBtn');
+
+    // UI Reset
+    document.getElementById('editorHeader').style.display = 'flex';
+    document.getElementById('editorEmpty').style.display = 'none';
+    
+    // Download-Button aktualisieren
+    if (downloadBtn) {
+        downloadBtn.style.display = 'flex';
+        downloadBtn.href = fileUrl;
+        downloadBtn.setAttribute('download', filePath.split('/').pop());
+    }
+
+    // --- WEICHE: BILDER & PDF ---
+    if (['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'].includes(extension)) {
+        saveBtn.style.display = 'none'; // Verstecke Speichern-Button
+        
+        if (extension === '.pdf') {
+            editorContent.innerHTML = `<iframe src="${fileUrl}" style="width:100%; height:100%; border:none; background:white;"></iframe>`;
+        } else {
+            editorContent.innerHTML = `
+                <div style="display:flex; justify-content:center; align-items:center; height:100%; background:#0b0e14; padding:20px;">
+                    <img src="${fileUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">
+                </div>`;
         }
+        return; // Beende die Funktion hier, lade keinen Code-Editor
+    }
+
+    // --- FALL: TEXT/CODE ---
+    saveBtn.style.display = 'inline-block';
+    try {
+        const response = await fetch(fileUrl);
+        const data = await response.json(); // Hier erwarten wir wieder JSON vom Server
+        
+        if (data.error) {
+            alert('Fehler: ' + data.error);
+            return;
+        }
+        
+        currentFilePath = filePath;
+        originalFileContent = data.content;
+        hasUnsavedChanges = false;
+        
+        document.getElementById('editorFileIcon').textContent = data.icon || '📄';
+        document.getElementById('editorFileName').textContent = data.name;
+        document.getElementById('editorFilePath').textContent = filePath.replace(data.name, '');
+        
+        // CodeMirror Logik
+        editorContent.innerHTML = ''; // Container leeren
+        let editorEl = document.createElement('div');
+        editorEl.id = 'codeMirrorEditor';
+        editorEl.style.height = '100%';
+        editorContent.appendChild(editorEl);
+        
+        codeEditor = CodeMirror(editorEl, {
+            value: data.content,
+            mode: getCodeMirrorMode(extension),
+            theme: 'material-darker',
+            lineNumbers: true,
+            lineWrapping: true,
+            tabSize: 2,
+            autoCloseBrackets: true,
+            matchBrackets: true
+        });
+        
+        codeEditor.on('change', () => {
+            hasUnsavedChanges = codeEditor.getValue() !== originalFileContent;
+            updateSaveButton();
+        });
+        
+        updateSaveButton();
+        codeEditor.refresh();
+        
+    } catch (error) {
+        console.error('Error opening file:', error);
+        alert('Fehler beim Laden der Datei. Evtl. ist das Backend noch nicht auf Binär-Support umgestellt?');
+    }
+}
 
         function getCodeMirrorMode(extension) {
             const modes = {
