@@ -2061,6 +2061,7 @@
         }
 
 async function openFile(filePath) {
+    
     // 1. Check auf ungespeicherte Änderungen
     if (hasUnsavedChanges && !confirm('Ungespeicherte Änderungen verwerfen?')) {
         return;
@@ -2077,6 +2078,17 @@ async function openFile(filePath) {
     const editorContent = document.getElementById('editorContent');
     const saveBtn = document.getElementById('editorSaveBtn');
     const downloadBtn = document.getElementById('editorDownloadBtn');
+
+    // DOWNLOAD LOGIK START
+    const downloadBtn = document.getElementById('editorDownloadBtn');
+    const fileUrl = `/api/projects/${activeProjectId}/files/${filePath}`;
+
+    if (downloadBtn) {
+        downloadBtn.style.display = 'flex'; // Button sichtbar machen
+        downloadBtn.href = fileUrl;         // Link zur Datei setzen
+        downloadBtn.setAttribute('download', filePath.split('/').pop()); // Dateiname vorschlagen
+    }
+    // DOWNLOAD LOGIK ENDE
 
     // UI Reset
     document.getElementById('editorHeader').style.display = 'flex';
