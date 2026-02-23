@@ -2,7 +2,7 @@
   "projects": [
     {
       "id": "proj-dok-001",
-      "name": "Dokumentation",
+      "name": "Demo",
       "description": "Baustellendokumentation & Ablage",
       "docs": "# Dokumentation\nBaustellendokumentation & Ablage",
       "color": "#3b82f6",
@@ -10,55 +10,6 @@
       "tasks": [],
       "createdAt": "2026-02-23T10:00:00.000Z"
     },
-    {
-      "id": "proj-best-001",
-      "name": "Bestellwesen",
-      "description": "Alles rund um Offerten und Bestellungen",
-      "docs": "# Bestellwesen\nAlles rund um Offerten und Bestellungen",
-      "color": "#10b981",
-      "projectPath": "",
-      "tasks": [],
-      "createdAt": "2026-02-23T10:00:00.000Z"
-    },
-    {
-      "id": "proj-pers-001",
-      "name": "Personal",
-      "description": "Personalwesen Mitarbeiter auf der Baustelle",
-      "docs": "# Personal\nPersonalwesen Mitarbeiter auf der Baustelle",
-      "color": "#f59e0b",
-      "projectPath": "",
-      "tasks": [],
-      "createdAt": "2026-02-23T10:00:00.000Z"
-    },
-    {
-      "id": "proj-plan-001",
-      "name": "Arbeitsplanung",
-      "description": "To-Dos Offene Arbeiten Probleme",
-      "docs": "# Arbeitsplanung\nTo-Dos, Offene Arbeiten und Probleme auf der Baustelle",
-      "color": "#6366f1",
-      "projectPath": "",
-      "tasks": [],
-      "createdAt": "2026-02-23T10:00:00.000Z"
-    },
-    {
-      "id": "proj-cont-001",
-      "name": "Controlling",
-      "description": "Kosten & Controlling",
-      "docs": "# Controlling\nKosten & Controlling Übersicht",
-      "color": "#8b5cf6",
-      "projectPath": "",
-      "tasks": [],
-      "createdAt": "2026-02-23T10:00:00.000Z"
-    },
-    {
-      "id": "proj-prob-001",
-      "name": "Aktuelle Probleme",
-      "description": "Dringende Probleme und Hindernisse auf der Baustelle",
-      "docs": "# Aktuelle Probleme\nListe der kritischen Punkte, die sofortige Aufmerksamkeit erfordern.",
-      "color": "#dc2626",
-      "projectPath": "",
-      "tasks": [],
-      "createdAt": "2026-02-23T10:00:00.000Z"
-    }
+
   ]
 }
