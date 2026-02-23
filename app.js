@@ -992,6 +992,12 @@ app.get('/api/projects/:id/files/*', (req, res) => {
 
         // --- NEU: Spezialbehandlung für Binärdateien (PDF & Bilder) ---
         if (['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'].includes(ext)) {
+            const shouldDownload = req.query.download === '1';
+
+            if (shouldDownload) {
+                return res.download(fullPath, path.basename(filePath));
+            }
+
             // Schickt die Datei direkt als Stream, damit der Browser sie rendern kann
             return res.sendFile(fullPath);
         }

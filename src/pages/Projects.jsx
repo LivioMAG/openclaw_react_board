@@ -11,6 +11,7 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
   const [filesLoading, setFilesLoading] = useState(false)
   const [filesError, setFilesError] = useState('')
   const [deletingFilePath, setDeletingFilePath] = useState('')
+  const [downloadingFilePath, setDownloadingFilePath] = useState('')
 
   useEffect(() => {
     if (projectId && projectId !== activeProjectId) {
@@ -78,7 +79,7 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
       .map(segment => encodeURIComponent(segment))
       .join('/')
 
-    return `/api/projects/${project.id}/files/${encodedPath}`
+    return `/api/projects/${project.id}/files/${encodedPath}?download=1`
   }
 
   const getFileApiPath = (filePath) => {
@@ -88,6 +89,40 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
       .join('/')
 
     return `/api/projects/${project.id}/files/${encodedPath}`
+  }
+
+  const handleFileDownload = async (filePath, fileName) => {
+    if (!project) {
+      return
+    }
+
+    setDownloadingFilePath(filePath)
+    setFilesError('')
+
+    try {
+      const response = await fetch(getDownloadUrl(filePath))
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        setFilesError(data.error || 'Datei konnte nicht heruntergeladen werden.')
+        return
+      }
+
+      const blob = await response.blob()
+      const objectUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = objectUrl
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(objectUrl)
+    } catch (error) {
+      console.error('Error downloading file:', error)
+      setFilesError('Datei konnte nicht heruntergeladen werden.')
+    } finally {
+      setDownloadingFilePath('')
+    }
   }
 
   const handleFileDelete = async (filePath) => {
@@ -232,13 +267,13 @@ function Projects({ projects, activeProjectId, setActiveProjectId, fetchProjects
 
                     {!item.isDirectoryLabel && (
                       <div className="file-actions">
-                        <a
+                        <button
                           className="download-link"
-                          href={getDownloadUrl(item.path)}
-                          download={item.name}
+                          onClick={() => handleFileDownload(item.path, item.name)}
+                          disabled={downloadingFilePath === item.path}
                         >
-                          ⬇️ Download
-                        </a>
+                          {downloadingFilePath === item.path ? '⏳ Lade…' : '⬇️ Download'}
+                        </button>
                         <button
                           className="delete-file-button"
                           onClick={() => handleFileDelete(item.path)}
